@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "../styles/messages.css";
 
-const MessageInput = ({ setMessages }) => {
-  const [text, setText] = useState("");
+const MessageInput = ({ senderId, receiverId, onNewMessage }) => {
+  const [message, setMessage] = useState("");
 
   const sendMessage = async () => {
-    if (!text.trim()) return;
+    if (!message.trim()) return;
 
     try {
-      const response = await axios.post("http://localhost:5000/api/messages", { text, sender: "me" });
-      setMessages(prevMessages => [...prevMessages, response.data]);
-      setText("");
+      await axios.post("http://localhost:5000/api/messages", { senderId, receiverId, message });
+      onNewMessage({ sender_id: senderId, message });
+      setMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -19,14 +18,8 @@ const MessageInput = ({ setMessages }) => {
 
   return (
     <div className="message-input-container">
-      <input
-        className="message-input"
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Type a message..."
-      />
-      <button className="send-button" onClick={sendMessage}>Send</button>
+      <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." />
+      <button onClick={sendMessage}>Send</button>
     </div>
   );
 };

@@ -1,117 +1,108 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import io from "socket.io-client";
 import axios from "axios";
+import "../styles/messages.css";
+
+const socket = io("http://localhost:5000");
 
 const MessagesPage = () => {
   const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  // Fetch users (people you can message)
   useEffect(() => {
-    axios.get("http://localhost:5000/users")
-      .then(response => {
-        setUsers(response.data);
-        setFilteredUsers(response.data);
+    axios
+      .get("http://localhost:5000/users")
+      .then((res) => {
+        console.log("Users fetched:", res.data);
+        setUsers(res.data);
       })
-      .catch(error => console.error("Error fetching users:", error));
+      .catch((err) => console.error("Error fetching users:", err));
 
-    axios.get("http://localhost:5000/chats")
-      .then(response => setChats(response.data))
-      .catch(error => console.error("Error fetching chats:", error));
+    axios
+      .get("http://localhost:5000/currentUser")
+      .then((res) => {
+        console.log("Current user fetched:", res.data);
+        setCurrentUser(res.data);
+      })
+      .catch((err) => console.error("Error fetching current user:", err));
   }, []);
 
-  // Handle search input
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setFilteredUsers(users.filter(user =>
-      user.username.toLowerCase().includes(e.target.value.toLowerCase())
-    ));
+  useEffect(() => {
+    if (!currentUser || !selectedUser) return;
+
+    axios
+      .get(`http://localhost:5000/messages/${currentUser.id}/${selectedUser.id}`)
+      .then((res) => {
+        console.log(`Messages with ${selectedUser.name}:`, res.data);
+        setMessages(res.data);
+      })
+      .catch((err) => console.error("Error fetching messages:", err));
+  }, [currentUser, selectedUser]);
+
+  const selectUser = (user) => {
+    setSelectedUser(user);
   };
 
-  // Select a chat & fetch messages
-  const openChat = (chatId) => {
-    setSelectedChat(chatId);
-    axios.get(`http://localhost:5000/messages?chatId=${chatId}`)
-      .then(response => setMessages(response.data))
-      .catch(error => console.error("Error fetching messages:", error));
-  };
-
-  // Send message
   const sendMessage = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentUser || !selectedUser) return;
 
-    axios.post("http://localhost:5000/messages", {
-      chatId: selectedChat,
-      content: newMessage,
-    }).then(() => {
-      setMessages([...messages, { content: newMessage, sender: "You" }]);
-      setNewMessage("");
-    }).catch(error => console.error("Error sending message:", error));
+    const message = {
+      senderId: currentUser.id,
+      receiverId: selectedUser.id,
+      message: newMessage,
+    };
+
+    socket.emit("sendMessage", message);
+    setMessages((prev) => [...prev, message]);
+    setNewMessage("");
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      
-      {/* Left Sidebar: Chats & Search */}
-      <div style={{ width: "30%", borderRight: "1px solid #ccc", padding: "20px" }}>
-        <h2>Messages</h2>
-        
-        {/* Search Bar */}
-        <input
-          type="text"
-          placeholder="Search people..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ width: "100%", padding: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-        />
-
-        {/* Chat List */}
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {chats.map(chat => (
-            <li key={chat.id} 
-                style={{ padding: "10px", borderBottom: "1px solid #ddd", cursor: "pointer", backgroundColor: selectedChat === chat.id ? "#f0f0f0" : "white" }}
-                onClick={() => openChat(chat.id)}>
-              <strong>{chat.username}</strong>
-            </li>
-          ))}
-        </ul>
+    <div className="chat-container">
+      <div className="user-list">
+        <h3>Users</h3>
+        {console.log("🚀 Rendering Users:", users)}
+        {users.length > 0 ? (
+          users.map((user) => (
+            <div
+              key={user.id}
+              className={`user ${selectedUser?.id === user.id ? "active" : ""}`}
+              onClick={() => selectUser(user)}
+            >
+              {user.name}
+            </div>
+          ))
+        ) : (
+          <p>No users available</p>
+        )}
       </div>
 
-      {/* Right Side: Chat Window */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "20px" }}>
-        {selectedChat ? (
+      <div className="chat-box">
+        {selectedUser ? (
           <>
-            <h3>Chat with {chats.find(chat => chat.id === selectedChat)?.username}</h3>
-            
-            {/* Messages Area */}
-            <div style={{ flex: 1, overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginBottom: "10px", borderRadius: "5px" }}>
+            <h3>Chat with {selectedUser.name}</h3>
+            <div className="messages">
               {messages.map((msg, index) => (
-                <p key={index} style={{ textAlign: msg.sender === "You" ? "right" : "left", background: msg.sender === "You" ? "#dcf8c6" : "#f1f1f1", padding: "5px", borderRadius: "5px", marginBottom: "5px" }}>
-                  {msg.content}
-                </p>
+                <div key={index} className={msg.senderId === currentUser?.id ? "message-sent" : "message-received"}>
+                  {msg.message}
+                </div>
               ))}
             </div>
-
-            {/* Message Input */}
-            <div style={{ display: "flex" }}>
+            <div className="input-box">
               <input
                 type="text"
-                placeholder="Type a message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                style={{ flex: 1, padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
+                placeholder="Type a message..."
               />
-              <button onClick={sendMessage} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
-                Send
-              </button>
+              <button onClick={sendMessage}>Send</button>
             </div>
           </>
         ) : (
-          <h3>Select a chat to start messaging</h3>
+          <h3>Select a user to chat</h3>
         )}
       </div>
     </div>

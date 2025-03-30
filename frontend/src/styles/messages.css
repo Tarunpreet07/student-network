@@ -1,73 +1,70 @@
-/* General Page Styling */
-.messages-container {
+.chat-container {
     display: flex;
-    flex-direction: column;
-    height: 100vh;
-    font-family: Arial, sans-serif;
-}
-
-/* Header Styling */
-.messages-header {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    background-color: #007bff;
-    color: white;
-    padding: 15px;
-}
-
-/* Chat Messages Styling */
-.messages-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-    background-color: #f4f4f4;
-}
-
-.message-item {
+    width: 80%;
+    margin: auto;
+    height: 80vh;
+    border: 1px solid #ddd;
+  }
+  
+  .user-list {
+    width: 25%;
+    border-right: 1px solid #ddd;
     padding: 10px;
-    border-radius: 10px;
-    max-width: 60%;
-    margin-bottom: 8px;
-}
-
-.message-sender {
-    font-weight: bold;
-    margin-bottom: 3px;
-}
-
-.message-received {
-    background-color: #ddd;
-    align-self: flex-start;
-}
-
-.message-sent {
-    background-color: #007bff;
-    color: white;
-    align-self: flex-end;
-}
-
-/* Input Box */
-.message-input-container {
-    display: flex;
+  }
+  
+  .user {
     padding: 10px;
-    background-color: white;
-    border-top: 1px solid #ccc;
-}
-
-.message-input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.send-button {
-    background-color: #007bff;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    margin-left: 10px;
     cursor: pointer;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .username {
+    font-weight: bold;
+    color: #0095f6; /* Instagram-like blue */
+  }
+  
+  .chat-box {
+    width: 75%;
+    padding: 20px;
+  }
+  
+  .messages {
+    height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .message-sent {
+    background-color: #dcf8c6;
+    padding: 10px;
     border-radius: 5px;
-}
+    margin: 5px 0;
+    text-align: right;
+  }
+  
+  .message-received {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 5px 0;
+    text-align: left;
+  }
+  
+  .input-box {
+    display: flex;
+    margin-top: 10px;
+  }
+  
+  .input-box input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+  
+  .input-box button {
+    padding: 10px;
+    background: #0095f6;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  

@@ -1,15 +1,13 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import MessagesPage from "./pages/MessagesPage";
+import ChatPage from "./pages/MessagesPage";
+import "./App.css";
 
-const App = () => {
+function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/messages" element={<MessagesPage />} />
-      </Routes>
-    </Router>
+    <div className="app">
+      <ChatPage />
+    </div>
   );
-};
+}
 
 export default App;
