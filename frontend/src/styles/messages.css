@@ -1,0 +1,73 @@
+/* General Page Styling */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+/* Header Styling */
+.messages-header {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+    padding: 15px;
+}
+
+/* Chat Messages Styling */
+.messages-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #f4f4f4;
+}
+
+.message-item {
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 60%;
+    margin-bottom: 8px;
+}
+
+.message-sender {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.message-received {
+    background-color: #ddd;
+    align-self: flex-start;
+}
+
+.message-sent {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+
+/* Input Box */
+.message-input-container {
+    display: flex;
+    padding: 10px;
+    background-color: white;
+    border-top: 1px solid #ccc;
+}
+
+.message-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.send-button {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    margin-left: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
