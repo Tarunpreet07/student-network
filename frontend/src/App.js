@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
-import Messages from './components/Messages';
+import Messages from './pages/MessagesPage';
 import Notifications from './components/Notifications';
 import Profile from './components/Profile';
 import Resources from './components/Resources';
