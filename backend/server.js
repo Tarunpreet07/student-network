@@ -1,12 +1,13 @@
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const authRoutes = require("./routes/authRoutes");
-
+const express = require('express');
+const cors = require('cors');
 const app = express();
+require('dotenv').config();
+
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.use("/api/auth", authRoutes);
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
 
-app.listen(5000, () => console.log("✅ Server running on port 5000"));
+const PORT = 5000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
