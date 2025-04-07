@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import io from "socket.io-client";
 import axios from "axios";
@@ -13,57 +13,81 @@ const MessagesPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null); // ✅ For auto-scroll
 
+  // Scroll to bottom when new messages come in
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Get current user details
   useEffect(() => {
     if (user_id) {
-      axios.get(`http://localhost:5000/api/users/${user_id}`)
+      axios
+        .get(`http://localhost:5000/api/currentUser/${user_id}`)
+        .then((res) => {
+          setCurrentUser(res.data);
+          socket.emit("join", res.data.id); // join socket room
+        })
+        .catch((err) => console.error("Error fetching current user:", err));
+    }
+  }, [user_id]);
+
+  // Get all other users
+  useEffect(() => {
+    if (user_id) {
+      axios
+        .get(`http://localhost:5000/api/users/${user_id}`) // returns all users except current
         .then((res) => setUsers(res.data))
         .catch((err) => console.error("Error fetching users:", err));
     }
   }, [user_id]);
 
-  useEffect(() => {
-    if (user_id) {
-      axios.get(`http://localhost:5000/api/currentUser/${user_id}`)
-        .then((res) => setCurrentUser(res.data))
-        .catch((err) => console.error("Error fetching current user:", err));
-    }
-  }, [user_id]);
-
+  // Load chat messages between current and selected user
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
 
-    axios.get(`http://localhost:5000/api/messages/${currentUser.id}/${selectedUser.id}`)
+    axios
+      .get(
+        `http://localhost:5000/api/messages?sender_id=${currentUser.id}&receiver_id=${selectedUser.id}`
+      )
       .then((res) => setMessages(res.data))
       .catch((err) => console.error("Error fetching messages:", err));
   }, [currentUser, selectedUser]);
 
+  // Listen for incoming messages
   useEffect(() => {
-    if (!currentUser) return;
+    const handleReceiveMessage = (message) => {
+      if (
+        message.sender_id === selectedUser?.id &&
+        message.receiver_id === currentUser?.id
+      ) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
 
-    socket.on(`receiveMessage:${currentUser.id}`, (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    return () => socket.off(`receiveMessage:${currentUser.id}`);
-  }, [currentUser]);
+    socket.on("receiveMessage", handleReceiveMessage);
+    return () => socket.off("receiveMessage", handleReceiveMessage);
+  }, [selectedUser, currentUser]);
 
   const selectUser = (user) => {
     setSelectedUser(user);
+    setMessages([]); // Reset previous messages
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !selectedUser) return;
 
     const messageData = {
-      senderId: currentUser.id,
-      receiverId: selectedUser.id,
+      sender_id: currentUser.id,
+      receiver_id: selectedUser.id,
       message: newMessage,
     };
 
     try {
       await axios.post("http://localhost:5000/api/messages", messageData);
-      socket.emit("sendMessage", messageData);
+      socket.emit("sendMessage", messageData); // Notify receiver
+      setMessages((prev) => [...prev, { ...messageData, created_at: new Date() }]);
       setNewMessage("");
     } catch (err) {
       console.error("Error sending message:", err);
@@ -97,9 +121,15 @@ const MessagesPage = () => {
                     msg.sender_id === currentUser?.id ? "sent" : "received"
                   }`}
                 >
-                  {msg.message}
+                  <div>{msg.message}</div>
+                  {msg.created_at && (
+                    <small className="timestamp">
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </small>
+                  )}
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
             <div className="input-box">
               <input
@@ -112,7 +142,7 @@ const MessagesPage = () => {
             </div>
           </>
         ) : (
-          <h3>Select a user to chat</h3>
+          <h3>Select a user to start chatting</h3>
         )}
       </div>
     </div>
