@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
-import Messages from './pages/MessagesPage';
+import Messages from './pages/MessagesPage'; // assumes correct import
 import Notifications from './components/Notifications';
 import Profile from './components/Profile';
 import Resources from './components/Resources';
@@ -16,7 +16,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home/:userId" element={<Home />} />
-        <Route path="/messages" element={<Messages />} />
+        <Route path="/messages/:user_id" element={<Messages />} /> {/* ✅ Fixed route */}
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/resources" element={<Resources />} />

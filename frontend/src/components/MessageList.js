@@ -5,7 +5,7 @@ const MessageList = ({ senderId, receiverId }) => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/messages/${senderId}/${receiverId}`)
+    axios.get(http://localhost:5000/api/messages/${senderId}/${receiverId})
       .then((res) => setMessages(res.data))
       .catch((err) => console.error("Error fetching messages:", err));
   }, [senderId, receiverId]);
