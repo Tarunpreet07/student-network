@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import io from "socket.io-client";
 import axios from "axios";
@@ -13,7 +13,9 @@ const MessagesPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null);
 
+  // Fetch all users
   useEffect(() => {
     if (user_id) {
       axios
@@ -23,6 +25,7 @@ const MessagesPage = () => {
     }
   }, [user_id]);
 
+  // Fetch current user
   useEffect(() => {
     if (user_id) {
       axios
@@ -32,6 +35,7 @@ const MessagesPage = () => {
     }
   }, [user_id]);
 
+  // Fetch messages between current user and selected user
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
 
@@ -43,19 +47,38 @@ const MessagesPage = () => {
       .catch((err) => console.error("Error fetching messages:", err));
   }, [currentUser, selectedUser]);
 
+  // Socket listener for incoming messages
   useEffect(() => {
     if (!currentUser) return;
 
     const listener = `receiveMessage:${currentUser.id}`;
-    socket.on(listener, (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
 
-    return () => socket.off(listener);
+    const handleIncoming = (message) => {
+      // Normalize if needed
+      const normalizedMessage = {
+        ...message,
+        sender_id: message.sender_id || message.senderId,
+      };
+
+      // Only push if it's from someone else
+      if (normalizedMessage.sender_id !== currentUser.id) {
+        setMessages((prev) => [...prev, normalizedMessage]);
+      }
+    };
+
+    socket.on(listener, handleIncoming);
+
+    return () => socket.off(listener, handleIncoming);
   }, [currentUser]);
+
+  // Scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const selectUser = (user) => {
     setSelectedUser(user);
+    setMessages([]);
   };
 
   const sendMessage = async () => {
@@ -68,10 +91,13 @@ const MessagesPage = () => {
     };
 
     try {
+      // Save to DB
       await axios.post("http://localhost:5000/api/messages", messageData);
+
+      // Emit through socket
       socket.emit("sendMessage", messageData);
 
-      // Add the message immediately to the chat
+      // Show immediately in UI
       setMessages((prev) => [
         ...prev,
         { ...messageData, sender_id: currentUser.id },
@@ -101,7 +127,6 @@ const MessagesPage = () => {
       <div className="chat-box">
         {selectedUser ? (
           <>
-            <h3>Chat with {selectedUser.name}</h3>
             <div className="messages">
               {messages.map((msg, index) => (
                 <div
@@ -113,6 +138,7 @@ const MessagesPage = () => {
                   {msg.message}
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
             <div className="input-box">
               <input
