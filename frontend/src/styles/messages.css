@@ -65,7 +65,9 @@
   display: flex;
   padding: 10px;
   border-top: 1px solid #ccc;
-  background: white;
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
 }
 
 .input-box input {
