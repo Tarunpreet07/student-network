@@ -1,3 +1,4 @@
+
 # Ignore node_modules folders
 node_modules/
 frontend/node_modules/
@@ -7,3 +8,6 @@ backend/node_modules/
 *.log
 .cache/
 
+=======
+frontend/node_modules/
+>>>>>>> backup-working-state
