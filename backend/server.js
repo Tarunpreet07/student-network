@@ -5,6 +5,7 @@ const { Server } = require("socket.io");
 const mysql = require("mysql2");
 const dotenv = require("dotenv");
 const routes = require("./routes/messageRoutes");
+const db = require("./config/db");
 
 dotenv.config();
 
@@ -15,22 +16,6 @@ const io = new Server(server, { cors: { origin: "*" } });
 app.use(cors());
 app.use(express.json());
 app.use("/api", routes);
-
-// MySQL connection setup
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error("Error connecting to MySQL:", err);
-        return;
-    }
-    console.log("Connected to MySQL database");
-});
 
 // WebSocket connection
 io.on("connection", (socket) => {
