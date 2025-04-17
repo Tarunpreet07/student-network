@@ -6,3 +6,4 @@ backend/node_modules/
 # Optional: Ignore cache or temp files
 *.log
 .cache/
+
