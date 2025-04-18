@@ -16,24 +16,16 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", routes);
 
-// 🟢 Track connected users
-const onlineUsers = new Map();
-
+// WebSocket connection
 io.on("connection", (socket) => {
     console.log("🟢 A user connected");
-
-    // Join a room using user ID
-    socket.on("join", (userId) => {
-        onlineUsers.set(userId, socket.id);
-        socket.join(userId.toString());
-        console.log(`User ${userId} joined room ${userId}`);
-    });
 
     // 📩 Handle message sending
     socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
         const created_at = new Date();
 
         try {
+            // Insert message into the database
             await db.query(
                 "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)",
                 [senderId, receiverId, message, created_at]
@@ -41,14 +33,9 @@ io.on("connection", (socket) => {
 
             const payload = { senderId, receiverId, message, created_at };
 
-            // Emit only to receiver if online
-            const receiverSocket = onlineUsers.get(receiverId);
-            if (receiverSocket) {
-                io.to(receiverId.toString()).emit("receiveMessage", payload);
-            }
-
-            // Optional: Emit confirmation to sender
-            socket.emit("messageSent", payload);
+            // Emit the message to both the sender and receiver
+            io.emit(`receiveMessage:${receiverId}`, payload); // Receiver
+            io.emit(`receiveMessage:${senderId}`, payload); // Sender (if needed)
         } catch (err) {
             console.error("Error sending message:", err);
         }
@@ -56,13 +43,7 @@ io.on("connection", (socket) => {
 
     // 🔴 Handle disconnect
     socket.on("disconnect", () => {
-        for (let [userId, socketId] of onlineUsers.entries()) {
-            if (socketId === socket.id) {
-                onlineUsers.delete(userId);
-                console.log(`User ${userId} disconnected`);
-                break;
-            }
-        }
+        console.log("🔴 A user disconnected");
     });
 });
 

@@ -15,70 +15,35 @@ const MessagesPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
 
-  // Check socket connection
-  useEffect(() => {
-    socket.on('connect', () => {
-      console.log('Connected to socket with ID:', socket.id);
-    });
-
-    return () => {
-      socket.off('connect');
-    };
-  }, []);
-
-  // Fetch all users except the logged-in user
+  // Fetch all users
   useEffect(() => {
     if (user_id) {
-      console.log("Fetching users excluding user:", user_id);
       axios
-        .get(`http://localhost:5000/api/users?exclude=${user_id}`)
-        .then((res) => {
-          if (res.data && Array.isArray(res.data)) {
-            console.log("Users fetched:", res.data);
-            setUsers(res.data);
-          } else {
-            console.error("Invalid response format for users:", res.data);
-          }
-        })
+        .get(`http://localhost:5000/api/users/${user_id}`)
+        .then((res) => setUsers(res.data))
         .catch((err) => console.error("Error fetching users:", err));
     }
   }, [user_id]);
 
-  // Fetch current user data
+  // Fetch current user
   useEffect(() => {
     if (user_id) {
-      console.log("Fetching current user with ID:", user_id);
       axios
         .get(`http://localhost:5000/api/currentUser/${user_id}`)
-        .then((res) => {
-          if (res.data) {
-            console.log("Current user fetched:", res.data);
-            setCurrentUser(res.data);
-          } else {
-            console.error("Current user not found.");
-          }
-        })
+        .then((res) => setCurrentUser(res.data))
         .catch((err) => console.error("Error fetching current user:", err));
     }
   }, [user_id]);
 
-  // Fetch messages between the current user and the selected user
+  // Fetch messages between current user and selected user
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
 
-    console.log(`Fetching messages between ${currentUser.id} and ${selectedUser.id}`);
     axios
       .get(
         `http://localhost:5000/api/messages/${currentUser.id}/${selectedUser.id}`
       )
-      .then((res) => {
-        if (res.data && Array.isArray(res.data)) {
-          console.log("Messages fetched:", res.data);
-          setMessages(res.data);
-        } else {
-          console.error("Invalid response format for messages:", res.data);
-        }
-      })
+      .then((res) => setMessages(res.data))
       .catch((err) => console.error("Error fetching messages:", err));
   }, [currentUser, selectedUser]);
 
@@ -87,40 +52,35 @@ const MessagesPage = () => {
     if (!currentUser) return;
 
     const listener = `receiveMessage:${currentUser.id}`;
+
     const handleIncoming = (message) => {
-      console.log("Received message via socket:", message);
+      // Normalize if needed
       const normalizedMessage = {
         ...message,
         sender_id: message.sender_id || message.senderId,
       };
 
+      // Only push if it's from someone else
       if (normalizedMessage.sender_id !== currentUser.id) {
-        console.log("Adding message to state:", normalizedMessage);
         setMessages((prev) => [...prev, normalizedMessage]);
       }
     };
 
     socket.on(listener, handleIncoming);
 
-    return () => {
-      console.log("Removing socket listener for:", listener);
-      socket.off(listener, handleIncoming);
-    };
+    return () => socket.off(listener, handleIncoming);
   }, [currentUser]);
 
-  // Scroll to the latest message
+  // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Select a user from the list to start chatting
   const selectUser = (user) => {
-    console.log("Selected user:", user);
     setSelectedUser(user);
-    setMessages([]);  // Clear previous messages when a new user is selected
+    setMessages([]);
   };
 
-  // Send message functionality
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !selectedUser) return;
 
@@ -131,20 +91,18 @@ const MessagesPage = () => {
     };
 
     try {
-      console.log("Sending message:", messageData);
-      // Save message to DB
+      // Save to DB
       await axios.post("http://localhost:5000/api/messages", messageData);
 
-      // Emit the message to other clients via socket
+      // Emit through socket
       socket.emit("sendMessage", messageData);
 
-      // Add the new message to the UI immediately
+      // Show immediately in UI
       setMessages((prev) => [
         ...prev,
         { ...messageData, sender_id: currentUser.id },
       ]);
 
-      // Clear the input after sending
       setNewMessage("");
     } catch (err) {
       console.error("Error sending message:", err);
@@ -155,19 +113,15 @@ const MessagesPage = () => {
     <div className="chat-container">
       <div className="user-list">
         <h3>Users</h3>
-        {users.length === 0 ? (
-          <p>No users available</p>
-        ) : (
-          users.map((user) => (
-            <div
-              key={user.id}
-              className={`user ${selectedUser?.id === user.id ? "active" : ""}`}
-              onClick={() => selectUser(user)}
-            >
-              {user.name}
-            </div>
-          ))
-        )}
+        {users.map((user) => (
+          <div
+            key={user.id}
+            className={`user ${selectedUser?.id === user.id ? "active" : ""}`}
+            onClick={() => selectUser(user)}
+          >
+            {user.name}
+          </div>
+        ))}
       </div>
 
       <div className="chat-box">
