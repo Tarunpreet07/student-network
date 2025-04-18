@@ -13,13 +13,6 @@ import {
   FaMoon,
 } from "react-icons/fa";
 
-<<<<<<< HEAD
-const HomePage = () => {
-  return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h1>Welcome to the Homepage 🎉</h1>
-      <p>You are successfully logged in.</p>
-=======
 const Homepage = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -27,9 +20,8 @@ const Homepage = () => {
   const toggleTheme = () => setDarkMode(!darkMode);
 
   const handleLogout = () => {
-    // Clear session or tokens here, then redirect
     localStorage.clear();
-    window.location.href = "/login"; // Redirect to login page
+    window.location.href = "/login";
   };
 
   return (
@@ -59,8 +51,7 @@ const Homepage = () => {
         <div className="sidebar-item"><FaBell /> <span>Notifications</span></div>
         <div className="sidebar-item"><FaEnvelope /> <span>Messages</span></div>
         <div className="sidebar-item"><FaUser /> <span>Profile</span></div>
-        
-        {/* More Button */}
+
         <div
           className="sidebar-item-1"
           onClick={() => setShowDropdown(!showDropdown)}
@@ -68,7 +59,6 @@ const Homepage = () => {
           <FaEllipsisH /> <span>More</span>
         </div>
 
-        {/* Dropdown Menu */}
         {showDropdown && (
           <div className="dropdown-menu">
             <button onClick={toggleTheme}>
@@ -114,13 +104,8 @@ const Homepage = () => {
           </div>
         </div>
       </div>
->>>>>>> b9b8ccdeaa8a7bcd87ecf82004bcb052cb36a920
     </div>
   );
 };
 
-<<<<<<< HEAD
-export default HomePage;
-=======
 export default Homepage;
->>>>>>> b9b8ccdeaa8a7bcd87ecf82004bcb052cb36a920
