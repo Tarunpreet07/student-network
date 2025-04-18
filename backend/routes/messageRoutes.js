@@ -29,18 +29,15 @@ router.get("/currentUser/:userId", async (req, res) => {
     }
 });
 
-// ✅ Get chat messages with optional pagination
+// ✅ Get chat messages
 router.get("/messages/:senderId/:receiverId", async (req, res) => {
-    const { senderId, receiverId } = req.params;
-    const { limit = 50, offset = 0 } = req.query;
-
     try {
+        const { senderId, receiverId } = req.params;
         const [messages] = await db.query(`
             SELECT * FROM messages 
             WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) 
             ORDER BY created_at ASC
-            LIMIT ? OFFSET ?
-        `, [senderId, receiverId, receiverId, senderId, Number(limit), Number(offset)]);
+        `, [senderId, receiverId, receiverId, senderId]);
 
         res.json(messages);
     } catch (err) {
@@ -54,16 +51,11 @@ router.post("/messages", async (req, res) => {
     try {
         const { senderId, receiverId, message } = req.body;
 
-        if (!senderId || !receiverId || !message || !message.trim()) {
+        if (!senderId || !receiverId || !message.trim()) {
             return res.status(400).json({ error: "All fields are required!" });
         }
 
-        const created_at = new Date();
-        await db.query(
-            "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)",
-            [senderId, receiverId, message, created_at]
-        );
-
+        await db.query("INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)", [senderId, receiverId, message]);
         res.json({ message: "Message sent successfully!" });
     } catch (err) {
         console.error("Error sending message:", err);
