@@ -2,10 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const mysql = require("mysql2");
 const dotenv = require("dotenv");
+const mysql = require("mysql2"); // Assuming you're using mysql2 for async/await support
 const routes = require("./routes/messageRoutes");
-const authRoutes = require("./routes/authRoutes"); // ✅ Add this line
+const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api", routes);
-app.use("/api/auth", authRoutes); // ✅ Add this line
+app.use("/api/auth", authRoutes);
 
 // MySQL connection setup
 const db = mysql.createConnection({
@@ -32,7 +32,7 @@ db.connect((err) => {
         console.error("Error connecting to MySQL:", err);
         return;
     }
-    console.log("Connected to MySQL database");
+    console.log("✅ Connected to MySQL database");
 });
 
 // WebSocket connection
@@ -40,21 +40,19 @@ io.on("connection", (socket) => {
     console.log("🟢 A user connected");
 
     socket.on("sendMessage", ({ senderId, receiverId, message }) => {
-        const payload = {
-            senderId,
-            receiverId,
-            message,
-            created_at: new Date()
-        };
+        const created_at = new Date();
+        const payload = { senderId, receiverId, message, created_at };
 
         const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
-        db.query(query, [senderId, receiverId, message, payload.created_at], (err, result) => {
+        db.query(query, [senderId, receiverId, message, created_at], (err, result) => {
             if (err) {
-                console.error("Error saving message:", err);
+                console.error("❌ Error saving message:", err);
                 return;
             }
 
             console.log("💾 Message saved to DB");
+
+            // Emit to sender and receiver
             io.emit(`receiveMessage:${receiverId}`, payload);
             io.emit(`receiveMessage:${senderId}`, payload);
         });
