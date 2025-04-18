@@ -13,8 +13,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+       <Route path="/" element={<Register />} />
+       <Route path="/login" element={<Login/>} />
         <Route path="/home/:userId" element={<Home />} />
         <Route path="/messages/:user_id" element={<Messages />} /> {/* ✅ Fixed route */}
         <Route path="/notifications" element={<Notifications />} />
@@ -26,4 +26,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;  

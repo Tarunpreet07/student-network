@@ -1,7 +1,12 @@
 import React from 'react';
 
-const Home = () => {
-  return <h2>HOme Page</h2>;
+const HomePage = () => {
+  return (
+    <div style={{ padding: "2rem", textAlign: "center" }}>
+      <h1>Welcome to the Homepage 🎉</h1>
+      <p>You are successfully logged in.</p>
+    </div>
+  );
 };
 
-export default Home;
+export default HomePage;
