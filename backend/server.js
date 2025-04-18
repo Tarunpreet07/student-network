@@ -5,7 +5,11 @@ const { Server } = require("socket.io");
 const mysql = require("mysql2");
 const dotenv = require("dotenv");
 const routes = require("./routes/messageRoutes");
+<<<<<<< HEAD
 const authRoutes = require("./routes/authRoutes"); // ✅ Add this line
+=======
+const db = require("./config/db");
+>>>>>>> b9b8ccdeaa8a7bcd87ecf82004bcb052cb36a920
 
 dotenv.config();
 
@@ -47,6 +51,10 @@ io.on("connection", (socket) => {
             created_at: new Date()
         };
 
+<<<<<<< HEAD
+=======
+        // Save message to MySQL database
+>>>>>>> b9b8ccdeaa8a7bcd87ecf82004bcb052cb36a920
         const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
         db.query(query, [senderId, receiverId, message, payload.created_at], (err, result) => {
             if (err) {
@@ -54,7 +62,13 @@ io.on("connection", (socket) => {
                 return;
             }
 
+<<<<<<< HEAD
             console.log("💾 Message saved to DB");
+=======
+            console.log("Message saved to DB");
+
+            // Emit message to sender and receiver through WebSocket
+>>>>>>> b9b8ccdeaa8a7bcd87ecf82004bcb052cb36a920
             io.emit(`receiveMessage:${receiverId}`, payload);
             io.emit(`receiveMessage:${senderId}`, payload);
         });
