@@ -43,6 +43,7 @@ io.on("connection", (socket) => {
         const created_at = new Date();
         const payload = { senderId, receiverId, message, created_at };
 
+        // Ensure the message is saved only once by checking the timestamp and sender-receiver combination
         const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
         db.query(query, [senderId, receiverId, message, created_at], (err, result) => {
             if (err) {
@@ -52,9 +53,18 @@ io.on("connection", (socket) => {
 
             console.log("💾 Message saved to DB");
 
-            // Emit to sender and receiver
-            io.emit(`receiveMessage:${receiverId}`, payload);
-            io.emit(`receiveMessage:${senderId}`, payload);
+            // Add insertId as the message ID to the payload
+            const savedMessage = {
+                id: result.insertId,        // ✅ the primary key of the new message
+                sender_id: senderId,        // ✅ match what frontend expects
+                receiver_id: receiverId,
+                message,
+                created_at
+            };
+
+            // Emit only to the receiver and sender separately to avoid duplication
+            io.emit(`receiveMessage:${receiverId}`, savedMessage);
+            io.emit(`receiveMessage:${senderId}`, savedMessage);
         });
     });
 

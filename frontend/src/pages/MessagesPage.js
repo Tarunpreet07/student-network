@@ -60,8 +60,9 @@ const MessagesPage = () => {
         sender_id: message.sender_id || message.senderId,
       };
 
-      // Only push if it's from someone else
-      if (normalizedMessage.sender_id !== currentUser.id) {
+      // Prevent duplicate messages by checking if the message already exists
+      const isMessageExists = messages.some((msg) => msg.id === message.id);
+      if (!isMessageExists && normalizedMessage.sender_id !== currentUser.id) {
         setMessages((prev) => [...prev, normalizedMessage]);
       }
     };
@@ -69,7 +70,7 @@ const MessagesPage = () => {
     socket.on(listener, handleIncoming);
 
     return () => socket.off(listener, handleIncoming);
-  }, [currentUser]);
+  }, [currentUser, messages]);
 
   // Scroll to latest message
   useEffect(() => {
@@ -91,18 +92,16 @@ const MessagesPage = () => {
     };
 
     try {
-      // Save to DB
-      await axios.post("http://localhost:5000/api/messages", messageData);
-
-      // Emit through socket
+      // Emit the message through WebSocket
       socket.emit("sendMessage", messageData);
 
-      // Show immediately in UI
+      // Show immediately in UI without sending another API request
       setMessages((prev) => [
         ...prev,
         { ...messageData, sender_id: currentUser.id },
       ]);
 
+      // Clear the input field
       setNewMessage("");
     } catch (err) {
       console.error("Error sending message:", err);
