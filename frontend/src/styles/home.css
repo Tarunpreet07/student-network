@@ -1,265 +1,152 @@
-/* Common base */
+/* Basic reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main structure */
 .homepage {
   display: flex;
+  flex-direction: row;
   height: 100vh;
-  font-family: 'Arial', sans-serif;
-  transition: all 0.3s ease;
-  background-color: #fafafa;
-  color: #333;
-}
-
-/* Themes */
-.homepage.dark {
-  background-color: #121212;
-  color: #fff;
-}
-
-.homepage.light {
-  background-color: #fafafa;
-  color: #333;
 }
 
 /* Header */
 .header {
+  background-color: #fff;
+  color: #333;
+  padding: 15px 20px;
+  text-align: center;
+  width: 100%;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 80px;
-  background-color: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
   z-index: 1000;
-  border-bottom: 1px solid #444;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #eaeaea;
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.stories {
-  display: flex;
-  gap: 15px;
-}
-
-.story {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.story img {
-  border-radius: 50%;
-  border: 2px solid #888;
-  width: 50px;
-  height: 50px;
-}
-
-.story p {
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-/* Theme Toggle */
-.theme-toggle {
-  cursor: pointer;
-  font-size: 20px;
-}
-
-/* Additional styles for More Dropdown */
+/* Sidebar - Left */
 .sidebar-left {
   width: 250px;
-  padding-top: 100px;
+  background-color: #fafafa;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-left: 20px;
-  border-right: 1px solid #525050;
   position: fixed;
-  top: 0;
-  bottom: 0;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  cursor: pointer;
-  gap: 15px;
-  padding: 10px;
-  border-radius: 10px;
-  transition: background 0.2s ease;
-}
-
-.sidebar-item-1 {
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  cursor: pointer;
-  gap: 15px;
-  padding: 10px;
-  border-radius: 10px;
-  transition: background 0.2s ease;
-  margin-top: auto;
-}
-
-/* When hovering over sidebar items */
-.sidebar-item:hover,
-.sidebar-item-1:hover {
-  background-color: #474343;
-}
-
-/* Dropdown Menu */
-.dropdown-menu {
-  background-color: #464040;
-  color: white;
-  position: absolute;
-  bottom: 50px;
+  top: 80px;  /* To avoid overlapping with header */
   left: 0;
-  width: 80%;
-  padding: 20px;
-  margin-left: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  bottom: 0;
+  border-right: 1px solid #eaeaea;
+  z-index: 500; /* Make sure sidebar stays on top of content */
 }
 
-.dropdown-menu button {
-  background-color: transparent;
-  color: white;
-  border: none;
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
+/* Sidebar item styling */
+.sidebar-item {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
   cursor: pointer;
-  margin-bottom: 10px;
-  border-radius: 6px;
+  font-size: 18px;
+  color: rgb(15, 15, 22);  /* Text color changed to blue */
+  text-decoration: none;  /* Remove underline from links */
 }
 
-.dropdown-menu button:hover {
-  background-color: #444;
+.sidebar-item span {
+  margin-left: 10px;
 }
 
-/* Body Themes */
-.homepage.dark {
-  background-color: #121212;
-  color: white;
+.sidebar-item:hover {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding-left: 10px;
+  color: #050c14;  /* Blue color on hover */
 }
-
-.homepage.light {
-  background-color: #fafafa;
-  color: #333;
-}
-
 
 /* Main Content */
 .main-content {
   flex: 1;
-  margin: 110px 300px 20px 300px;
+  background-color: #fff;
+  padding: 80px 20px 20px 270px;  /* Adjust padding for header and sidebar */
   overflow-y: auto;
 }
 
+/* Post */
 .post {
-  background-color: inherit;
-  margin-bottom: 30px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #444;
-  transition: all 0.3s ease;
-}
-
-.post:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
 }
 
 .post-header {
   display: flex;
   align-items: center;
-  padding: 10px;
-  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .post-header img {
   border-radius: 50%;
+  margin-right: 10px;
+}
+
+.post-header span {
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .post-image {
   width: 100%;
-  height: auto;
-  object-fit: cover;
-  max-height: 500px;
+  border-radius: 10px;
+  margin-top: 15px;
 }
 
 .post-actions {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 18px;
-  color: #444;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
 }
 
 .post-actions span {
-  margin-right: 20px;
+  cursor: pointer;
 }
 
-.post-actions:hover {
-  color: #007bff;
+/* Sidebar item hover effect */
+.sidebar-item:hover {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding-left: 10px;
 }
 
-/* Right Sidebar */
-.sidebar-right {
-  width: 250px;
-  padding-top: 80px;
-  padding-left: 20px;
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  border-left: 1px solid #444;
-  background-color: inherit;
-}
-
-.suggestions h4 {
-  margin-bottom: 20px;
-  font-size: 16px;
-}
-
-.suggestion-item {
+/* Sidebar - Logout */
+.logout {
+  margin-top: auto;
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
-  gap: 10px;
-}
-
-.suggestion-item img {
-  border-radius: 50%;
-}
-
-.suggestion-item button {
-  background-color: #007bff;
-  border: none;
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
-.suggestion-item button:hover {
-  background-color: #0056b3;
+.logout span {
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 /* Scrollbar styling */
 .main-content::-webkit-scrollbar {
   width: 8px;
 }
+
 .main-content::-webkit-scrollbar-thumb {
-  background: #666;
+  background: #ccc;
   border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }

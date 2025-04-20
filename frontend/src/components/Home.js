@@ -1,76 +1,55 @@
 import React, { useState } from "react";
 import "../styles/home.css";
-import {
-  FaHome,
-  FaSearch,
-  FaBell,
-  FaEnvelope,
-  FaUser,
-  FaEllipsisH,
-  FaHeart,
-  FaRegComment,
-  FaSun,
-  FaMoon,
-} from "react-icons/fa";
+import { FaHome, FaSearch, FaBell, FaEnvelope, FaUser } from "react-icons/fa";
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Link } from "react-router-dom"; // React Router Link for navigation
 
 const Homepage = () => {
-  const [darkMode, setDarkMode] = useState(true);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  const toggleTheme = () => setDarkMode(!darkMode);
+  const [isSidebarVisible, setSidebarVisible] = useState(false);
 
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = "/login";
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!isSidebarVisible); // Toggle sidebar visibility
+  };
+
   return (
-    <div className={`homepage ${darkMode ? "dark" : "light"}`}>
+    <div className="homepage">
       {/* Header */}
       <div className="header">
         <div className="logo">CAMPUS-NETWORK</div>
-        <div className="stories">
-          <div className="story">
-            <img src="https://via.placeholder.com/50" alt="story" />
-            <p>Story 1</p>
-          </div>
-          <div className="story">
-            <img src="https://via.placeholder.com/50" alt="story" />
-            <p>Story 2</p>
-          </div>
-        </div>
-        <div className="theme-toggle" onClick={toggleTheme}>
-          {darkMode ? <FaSun /> : <FaMoon />}
-        </div>
+        <button className="sidebar-toggle" onClick={toggleSidebar}>☰</button> {/* Button to toggle sidebar */}
       </div>
 
       {/* Sidebar - Left */}
-      <div className="sidebar-left">
-        <div className="sidebar-item"><FaHome /> <span>Home</span></div>
-        <div className="sidebar-item"><FaSearch /> <span>Search</span></div>
-        <div className="sidebar-item"><FaBell /> <span>Notifications</span></div>
-        <div className="sidebar-item"><FaEnvelope /> <span>Messages</span></div>
-        <div className="sidebar-item"><FaUser /> <span>Profile</span></div>
-
-        <div
-          className="sidebar-item-1"
-          onClick={() => setShowDropdown(!showDropdown)}
-        >
-          <FaEllipsisH /> <span>More</span>
+      <div className={`sidebar-left ${isSidebarVisible ? 'show' : ''}`}>
+        <Link to="/home/1" className="sidebar-item">
+          <FaHome /> <span>Home</span>
+        </Link>
+        <Link to="/search" className="sidebar-item">
+          <FaSearch /> <span>Search</span>
+        </Link>
+        <Link to="/notifications" className="sidebar-item">
+          <FaBell /> <span>Notifications</span>
+        </Link>
+        <Link to="/messages/1" className="sidebar-item">
+          <FaEnvelope /> <span>Messages</span>
+        </Link>
+        <Link to="/profile" className="sidebar-item">
+          <FaUser /> <span>Profile</span>
+        </Link>
+        <div className="sidebar-item logout" onClick={handleLogout}>
+          <LogoutIcon />
+          <span>Logout</span>
         </div>
-
-        {showDropdown && (
-          <div className="dropdown-menu">
-            <button onClick={toggleTheme}>
-              {darkMode ? "🌙 Dark Mode" : "☀️ Light Mode"}
-            </button>
-            <button onClick={handleLogout}>🚪 Logout</button>
-          </div>
-        )}
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
+      <div className={`main-content ${isSidebarVisible ? 'shift' : ''}`}>
+        {/* Post 1 */}
         <div className="post">
           <div className="post-header">
             <img src="https://via.placeholder.com/32" alt="User" />
@@ -78,31 +57,12 @@ const Homepage = () => {
           </div>
           <img src="https://via.placeholder.com/500x300" alt="Post" className="post-image" />
           <div className="post-actions">
-            <FaHeart /> <span>Like</span>
-            <FaRegComment /> <span>Comment</span>
+            <span>❤️ Like</span>
+            <span>💬 Comment</span>
           </div>
         </div>
-      </div>
 
-      {/* Right Sidebar */}
-      <div className="sidebar-right">
-        <div className="suggestions">
-          <h4>Suggestions For You</h4>
-          <div className="suggestion-item">
-            <img src="https://via.placeholder.com/32" alt="Suggest" />
-            <div>
-              <p>username1</p>
-              <button>Follow</button>
-            </div>
-          </div>
-          <div className="suggestion-item">
-            <img src="https://via.placeholder.com/32" alt="Suggest" />
-            <div>
-              <p>username2</p>
-              <button>Follow</button>
-            </div>
-          </div>
-        </div>
+        {/* Add more posts here */}
       </div>
     </div>
   );
