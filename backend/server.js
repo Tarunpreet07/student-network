@@ -3,9 +3,10 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
-const mysql = require("mysql2"); // Assuming you're using mysql2 for async/await support
+const mysql = require("mysql2");
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
+const searchRoutes = require("./routes/searchRoutes"); // ✅ ADDED
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use("/api", routes);
 app.use("/api/auth", authRoutes);
+app.use("/api/search", searchRoutes); // ✅ ADDED
 
 // MySQL connection setup
 const db = mysql.createConnection({
@@ -52,7 +54,6 @@ io.on("connection", (socket) => {
 
             console.log("💾 Message saved to DB");
 
-            // Emit to sender and receiver
             io.emit(`receiveMessage:${receiverId}`, payload);
             io.emit(`receiveMessage:${senderId}`, payload);
         });
@@ -63,4 +64,5 @@ io.on("connection", (socket) => {
     });
 });
 
+// Listen on the correct port
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));
