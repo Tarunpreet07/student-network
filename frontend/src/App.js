@@ -1,6 +1,9 @@
+// src/App.js
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+// Importing components
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
@@ -8,7 +11,6 @@ import Messages from './pages/MessagesPage';
 import Notifications from './components/Notifications';
 import Profile from './components/Profile';
 import Resources from './components/Resources';
-import Search from './components/Search';
 
 function App() {
   return (
@@ -21,7 +23,6 @@ function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/resources" element={<Resources />} />
-        <Route path="/search" element={<Search />} />
       </Routes>
     </BrowserRouter>
   );
