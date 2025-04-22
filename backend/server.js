@@ -31,7 +31,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
     if (err) {
-        console.error("Error connecting to MySQL:", err);
+        console.error("❌ Error connecting to MySQL:", err);
         return;
     }
     console.log("✅ Connected to MySQL database");
@@ -43,9 +43,8 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", ({ senderId, receiverId, message }) => {
         const created_at = new Date();
-        const payload = { senderId, receiverId, message, created_at };
-
         const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
+
         db.query(query, [senderId, receiverId, message, created_at], (err, result) => {
             if (err) {
                 console.error("❌ Error saving message:", err);
@@ -54,8 +53,17 @@ io.on("connection", (socket) => {
 
             console.log("💾 Message saved to DB");
 
-            io.emit(`receiveMessage:${receiverId}`, payload);
-            io.emit(`receiveMessage:${senderId}`, payload);
+            const savedMessage = {
+                id: result.insertId,
+                sender_id: senderId,
+                receiver_id: receiverId,
+                message,
+                created_at
+            };
+
+            // Emit to both sender and receiver
+            io.emit(`receiveMessage:${receiverId}`, savedMessage);
+            io.emit(`receiveMessage:${senderId}`, savedMessage);
         });
     });
 
