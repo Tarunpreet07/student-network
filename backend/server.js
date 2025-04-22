@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const mysql = require("mysql2");
 const multer = require("multer"); // For file uploads
+const path = require("path");
+const fs = require("fs");
 
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -27,8 +29,14 @@ app.use("/api", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('uploads'));
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Ensure the 'uploads' directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 // Set up MySQL connection
 const db = mysql.createConnection({
@@ -83,6 +91,19 @@ io.on("connection", (socket) => {
   });
 });
 
+// Multer setup for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const fileExtension = file.originalname.split('.').pop();
+    const fileName = Date.now() + '.' + fileExtension;
+    cb(null, fileName);
+  }
+});
+const upload = multer({ storage: storage });
+
 // Route to get user profile
 app.get("/api/users/:id", (req, res) => {
   const { id } = req.params;
@@ -90,8 +111,11 @@ app.get("/api/users/:id", (req, res) => {
     if (err) return res.status(500).json({ error: err });
     if (result.length === 0) return res.status(404).json({ error: "User not found" });
 
+    // Check if profile_pic exists and modify the path accordingly
     if (result[0].profile_pic) {
-      result[0].profile_pic = `http://localhost:5000${result[0].profile_pic}`;
+      result[0].profile_pic = `/uploads/${result[0].profile_pic}`;
+    } else {
+      result[0].profile_pic = '/uploads/default-profile-pic.png'; // Default profile pic if not set
     }
 
     res.json(result[0]);
@@ -99,46 +123,28 @@ app.get("/api/users/:id", (req, res) => {
 });
 
 // Route to update user profile
-app.put("/api/users/:id", multer().single('profile_pic'), (req, res) => {
+app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
   const { id } = req.params;
   const bio = req.body.bio;
   let profile_pic = req.file ? `/uploads/${req.file.filename}` : null;
 
-  db.query(
-    "UPDATE users SET profile_pic = ?, bio = ? WHERE id = ?",
-    [profile_pic, bio, id],
-    (err, result) => {
+  // Only update profile_pic if a new one is provided, otherwise keep it as it is
+  const query = "UPDATE users SET profile_pic = COALESCE(?, profile_pic), bio = ? WHERE id = ?";
+  db.query(query, [profile_pic, bio, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+
+    db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE id = ?", [id], (err, result) => {
       if (err) return res.status(500).json({ error: err });
+      if (result.length === 0) return res.status(404).json({ error: "User not found" });
 
-      db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE id = ?", [id], (err, result) => {
-        if (err) return res.status(500).json({ error: err });
-        if (result.length === 0) return res.status(404).json({ error: "User not found" });
+      if (result[0].profile_pic) {
+        result[0].profile_pic = `/uploads/${result[0].profile_pic}`;
+      } else {
+        result[0].profile_pic = '/uploads/default-profile-pic.png'; // Default profile pic
+      }
 
-        if (result[0].profile_pic) {
-          result[0].profile_pic = `http://localhost:5000${result[0].profile_pic}`;
-        }
-
-        res.json(result[0]);
-      });
-    }
-  );
-});
-
-// Route to create a post with image and PDF upload
-app.post("/api/posts/:userId", multer().fields([{ name: 'image' }, { name: 'pdf' }]), (req, res) => {
-  const { userId } = req.params;
-  const { text } = req.body;
-  const imageFile = req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : null;
-  const pdfFile = req.files['pdf'] ? `/uploads/${req.files['pdf'][0].filename}` : null;
-
-  const created_at = new Date();
-
-  const query = "INSERT INTO posts (user_id, text, image, pdf, created_at) VALUES (?, ?, ?, ?, ?)";
-  db.query(query, [userId, text, imageFile, pdfFile, created_at], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to add post" });
-    }
-    res.status(201).json({ message: "Post added successfully", postId: result.insertId });
+      res.json(result[0]);
+    });
   });
 });
 
