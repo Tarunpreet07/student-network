@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+=======
+// src/App.js
+
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// Importing components
+>>>>>>> 5adad459c32208451789864c00c7765fbb15cc8d
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
@@ -7,7 +16,7 @@ import Messages from './pages/MessagesPage';
 import Notifications from './components/NotificationPage';
 import Profile from './components/Profile';
 import Resources from './components/Resources';
-import Search from './components/Search';
+import Search from './components/Search'; // Make sure this import exists
 
 function App() {
   return (

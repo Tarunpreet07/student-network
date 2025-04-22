@@ -13,11 +13,17 @@ const pool = mysql.createPool({
 });
 
 // ✅ Check MySQL Connection
-pool.getConnection()
-    .then((connection) => {
+async function checkConnection() {
+    try {
+        const connection = await pool.getConnection();
         console.log("✅ MySQL Connected!");
-        connection.release();
-    })
-    .catch((err) => console.error("❌ MySQL Connection Error:", err.message));
+        connection.release(); // Release the connection after checking
+    } catch (err) {
+        console.error("❌ MySQL Connection Error:", err.message);
+    }
+}
+
+// Call the function to check MySQL connection
+checkConnection();
 
 module.exports = pool;

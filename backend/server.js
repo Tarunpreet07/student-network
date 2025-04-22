@@ -4,9 +4,13 @@ const http = require("http");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const mysql = require("mysql2");
+<<<<<<< HEAD
 const multer = require("multer"); // Import multer for file uploads
+=======
+>>>>>>> 5adad459c32208451789864c00c7765fbb15cc8d
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
+const searchRoutes = require("./routes/searchRoutes"); // ✅ ADDED
 
 dotenv.config();
 
@@ -22,6 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use("/api", routes);
 app.use("/api/auth", authRoutes);
+app.use("/api/search", searchRoutes); // ✅ ADDED
 
 // Serve static files (e.g., images) from the 'uploads' directory
 app.use('/uploads', express.static('uploads'));  // Important for serving profile images
@@ -36,7 +41,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
     if (err) {
-        console.error("Error connecting to MySQL:", err);
+        console.error("❌ Error connecting to MySQL:", err);
         return;
     }
     console.log("✅ Connected to MySQL database");
@@ -48,9 +53,13 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", ({ senderId, receiverId, message }) => {
         const created_at = new Date();
+<<<<<<< HEAD
         const payload = { senderId, receiverId, message, created_at };
 
+=======
+>>>>>>> 5adad459c32208451789864c00c7765fbb15cc8d
         const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
+
         db.query(query, [senderId, receiverId, message, created_at], (err, result) => {
             if (err) {
                 console.error("❌ Error saving message:", err);
@@ -67,6 +76,10 @@ io.on("connection", (socket) => {
                 created_at
             };
 
+<<<<<<< HEAD
+=======
+            // Emit to both sender and receiver
+>>>>>>> 5adad459c32208451789864c00c7765fbb15cc8d
             io.emit(`receiveMessage:${receiverId}`, savedMessage);
             io.emit(`receiveMessage:${senderId}`, savedMessage);
         });
@@ -77,6 +90,7 @@ io.on("connection", (socket) => {
     });
 });
 
+<<<<<<< HEAD
 // Route to get user profile
 app.get("/api/users/:id", (req, res) => {
     const { id } = req.params;
@@ -150,4 +164,7 @@ app.post("/api/posts/:userId", multer().fields([{ name: 'image' }, { name: 'pdf'
 });
 
 // Start the server
+=======
+// Listen on the correct port
+>>>>>>> 5adad459c32208451789864c00c7765fbb15cc8d
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));
