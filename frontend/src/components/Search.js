@@ -1,74 +1,123 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import debounce from 'lodash.debounce';
+import './Search.css';
 
-const Search = () => {
+function Search() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ users: [], notes: [], posts: [] });
+  const [type, setType] = useState('users');
+  const [results, setResults] = useState([]);
+  const [headers, setHeaders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const fetchResults = useCallback(
-    debounce(async (searchQuery) => {
-      setLoading(true);
-      try {
-        const [users, notes, posts] = await Promise.all([
-          axios.get('/api/search/users', { params: { name: searchQuery } }),
-          axios.get('/api/search/notes', { params: { subject: searchQuery } }),
-          axios.get('/api/search/posts', { params: { title: searchQuery } }),
-        ]);
-        setResults({
-          users: users.data,
-          notes: notes.data,
-          posts: posts.data,
-        });
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setLoading(false);
-      }
-    }, 500),
-    []
-  );
-
-  useEffect(() => {
-    if (query) {
-      fetchResults(query);
-    } else {
-      setResults({ users: [], notes: [], posts: [] });
+  const handleSearch = async () => {
+    if (!query.trim()) {
+      setError('Please enter a search term');
+      setResults([]);
+      return;
     }
-  }, [query, fetchResults]);
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await axios.get(`http://localhost:5000/api/search/${type}`, {
+        params:
+          type === 'users'
+            ? { name: query }
+            : type === 'resources'
+            ? { title: query }
+            : { title: query, content: query },
+      });
+
+      const { table } = res.data;
+      setHeaders(table.headers);
+      setResults(table.rows);
+    } catch (error) {
+      console.error('Search error:', error);
+      setError('Something went wrong, please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTypeChange = (newType) => {
+    setType(newType);
+    setQuery('');
+    setResults([]);
+    setHeaders([]);
+    setError('');
+  };
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Search users, notes, posts..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {loading && <p>Loading...</p>}
-      <div>
-        <h3>Users</h3>
-        <ul>
-          {results.users.map((user) => (
-            <li key={user.id}>{user.name}</li>
-          ))}
-        </ul>
-        <h3>Notes</h3>
-        <ul>
-          {results.notes.map((note) => (
-            <li key={note.id}>{note.subject} - {note.semester}</li>
-          ))}
-        </ul>
-        <h3>Posts</h3>
-        <ul>
-          {results.posts.map((post) => (
-            <li key={post.id}>{post.title}</li>
-          ))}
-        </ul>
+    <div className="search-container">
+      <h2>Search {type.charAt(0).toUpperCase() + type.slice(1)}</h2>
+
+      {/* Search Bar */}
+      <div className="search-controls">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={`Search ${type}...`}
+        />
+        <button onClick={handleSearch}>Search</button>
       </div>
+
+      {/* Error Message */}
+      {error && <p className="error">{error}</p>}
+
+      {/* Type Selection Buttons */}
+      <div className="search-buttons">
+        <button
+          className={type === 'users' ? 'active' : ''}
+          onClick={() => handleTypeChange('users')}
+        >
+          Users
+        </button>
+        <button
+          className={type === 'resources' ? 'active' : ''}
+          onClick={() => handleTypeChange('resources')}
+        >
+          Notes
+        </button>
+        <button
+          className={type === 'posts' ? 'active' : ''}
+          onClick={() => handleTypeChange('posts')}
+        >
+          Posts
+        </button>
+      </div>
+
+      {/* Loading Indicator */}
+      {loading && <p>Loading...</p>}
+
+      {/* Results Table */}
+      {results.length > 0 && !loading && (
+        <table>
+          <thead>
+            <tr>
+              {headers.map((header, i) => (
+                <th key={i}>{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((row, i) => (
+              <tr key={i}>
+                {row.map((col, j) => (
+                  <td key={j}>{col}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* If no results */}
+      {!loading && results.length === 0 && !error && <p>No results found.</p>}
     </div>
   );
-};
+}
 
 export default Search;

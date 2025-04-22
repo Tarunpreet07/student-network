@@ -1,19 +1,12 @@
-import React, { useState } from "react";
-import "../styles/home.css";
-import { FaHome, FaSearch, FaBell, FaEnvelope, FaUser } from "react-icons/fa";
+import React from 'react';
+import { Link } from 'react-router-dom';  // Import Link for navigation
+import { FaHome, FaSearch, FaBell, FaEnvelope, FaUser } from 'react-icons/fa';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { Link } from "react-router-dom"; // React Router Link for navigation
 
-const Homepage = () => {
-  const [isSidebarVisible, setSidebarVisible] = useState(false);
-
+const NotificationPage = () => {
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = "/login";
-  };
-
-  const toggleSidebar = () => {
-    setSidebarVisible(!isSidebarVisible); // Toggle sidebar visibility
   };
 
   return (
@@ -21,11 +14,10 @@ const Homepage = () => {
       {/* Header */}
       <div className="header">
         <div className="logo">CAMPUS-NETWORK</div>
-        <button className="sidebar-toggle" onClick={toggleSidebar}>☰</button> {/* Button to toggle sidebar */}
       </div>
 
       {/* Sidebar - Left */}
-      <div className={`sidebar-left ${isSidebarVisible ? 'show' : ''}`}>
+      <div className="sidebar-left">
         <Link to="/home/1" className="sidebar-item">
           <FaHome /> <span>Home</span>
         </Link>
@@ -48,24 +40,22 @@ const Homepage = () => {
       </div>
 
       {/* Main Content */}
-      <div className={`main-content ${isSidebarVisible ? 'shift' : ''}`}>
-        {/* Post 1 */}
-        <div className="post">
-          <div className="post-header">
-            <img src="https://via.placeholder.com/32" alt="User" />
-            <span>Username</span>
+      <div className="main-content">
+        <h1>Notifications</h1>
+        {/* Example Notification */}
+        <div className="notification">
+          <div className="notification-header">
+            <span>You have 3 new notifications</span>
           </div>
-          <img src="https://via.placeholder.com/500x300" alt="Post" className="post-image" />
-          <div className="post-actions">
-            <span>❤️ Like</span>
-            <span>💬 Comment</span>
+          <div className="notification-body">
+            <p>John Doe commented on your post.</p>
+            <p>Jane Doe liked your photo.</p>
+            <p>Someone sent you a message.</p>
           </div>
         </div>
-
-        {/* Add more posts here */}
       </div>
     </div>
   );
 };
 
-export default Homepage;
+export default NotificationPage;

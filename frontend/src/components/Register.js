@@ -4,7 +4,7 @@ import axios from 'axios';
 import './Auth.css';
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', bio: '', year: '', branch: '' });
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
@@ -34,10 +34,37 @@ const Register = () => {
           required
         />
         <input
+          type="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          required
+        />
+        <input
           type="password"
           placeholder="Password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
+          required
+        />
+        <textarea
+          placeholder="Bio"
+          value={form.bio}
+          onChange={(e) => setForm({ ...form, bio: e.target.value })}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Year"
+          value={form.year}
+          onChange={(e) => setForm({ ...form, year: e.target.value })}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Branch"
+          value={form.branch}
+          onChange={(e) => setForm({ ...form, branch: e.target.value })}
           required
         />
         <button type="submit">Register</button>
