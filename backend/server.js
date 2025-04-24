@@ -164,5 +164,14 @@ app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
   });
 });
 
+app.get("/api/resources/:userId", (req, res) => {
+  const { userId } = req.params;
+  db.query("SELECT id, title, description, file_path, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(result);
+  });
+});
+
+
 // Start the server
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));
