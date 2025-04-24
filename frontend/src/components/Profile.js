@@ -12,7 +12,12 @@ const Profile = () => {
   const [resources, setResources] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+
+  // New states for individual edits
+  const [editProfilePic, setEditProfilePic] = useState(false);
+  const [editBio, setEditBio] = useState(false);
+  const [addPost, setAddPost] = useState(false);
+  const [addResource, setAddResource] = useState(false);
 
   const navigate = useNavigate();
 
@@ -24,7 +29,7 @@ const Profile = () => {
         if (!response.ok) throw new Error('Failed to fetch profile');
         const data = await response.json();
         setProfile(data);
-        setProfilePicPreview(data.profile_pic);
+        setProfilePicPreview(data.profile_pic || '/default-profile-pic.png');
         setNewBio(data.bio);
       } catch (error) {
         setError(error.message);
@@ -75,10 +80,62 @@ const Profile = () => {
 
       if (response.ok) {
         alert('Profile updated successfully!');
-        setEditMode(false);
+        setEditProfilePic(false);
+        setEditBio(false);
         navigate(`/profile/${userId}`);
       } else {
         throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNewPost = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('content', newBio);
+    if (newProfilePic) formData.append('image', newProfilePic);
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/posts`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const postData = await response.json();
+        setPosts([...posts, postData]);
+        setNewBio('');
+        setNewProfilePic(null);
+        setAddPost(false);
+      } else {
+        throw new Error('Failed to create post');
+      }
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleUploadResource = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.target);
+    try {
+      const response = await fetch(`http://localhost:5000/api/resources`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const resourceData = await response.json();
+        setResources([...resources, resourceData]);
+        setAddResource(false);
+        e.target.reset();
+      } else {
+        throw new Error('Failed to upload resource');
       }
     } catch (error) {
       setError(error.message);
@@ -93,10 +150,11 @@ const Profile = () => {
   return (
     <div className="profile-container">
       {error && <div className="error-message">{error}</div>}
+
       <div className="profile-header">
         <div className="profile-pic-container">
           <img
-            src={profilePicPreview ? `http://localhost:5000${profilePicPreview}` : '/default-profile-pic.png'}
+            src={`http://localhost:5000${profilePicPreview}`}
             alt="Profile"
             className="profile-pic"
           />
@@ -104,49 +162,91 @@ const Profile = () => {
         <div className="profile-info">
           <h1 className="profile-name">{profile.name}</h1>
           <p className="profile-email">{profile.email}</p>
+          <p className="profile-bio">{profile.bio || 'No bio available'}</p>
 
-          {!editMode && (
-            <>
-              <p className="profile-bio">{profile.bio}</p>
-              <button onClick={() => setEditMode(true)}>Edit Profile</button>
-            </>
+          <div className="profile-actions">
+            <button onClick={() => setEditProfilePic(true)}>Edit Profile Picture</button>
+            <button onClick={() => setEditBio(true)}>Edit Bio</button>
+            <button onClick={() => setAddPost(true)}>Add Post</button>
+            <button onClick={() => setAddResource(true)}>Upload Resource</button>
+          </div>
+
+          {editProfilePic && (
+            <form onSubmit={handleUpdateProfile} className="edit-form">
+              <label>New Profile Picture:</label>
+              <input
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setNewProfilePic(file);
+                  if (file) setProfilePicPreview(URL.createObjectURL(file));
+                }}
+              />
+              <button type="submit" disabled={loading}>Save</button>
+              <button type="button" onClick={() => setEditProfilePic(false)}>Cancel</button>
+            </form>
           )}
 
-          {editMode && (
-            <form onSubmit={handleUpdateProfile} className="update-form">
-              <div className="input-container">
-                <label>Profile Picture:</label>
-                <input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    setNewProfilePic(file);
-                    if (file) {
-                      setProfilePicPreview(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </div>
-              <div className="input-container">
-                <label>Bio:</label>
-                <textarea
-                  value={newBio}
-                  onChange={(e) => setNewBio(e.target.value)}
-                  placeholder="Enter your bio"
-                />
-              </div>
-              <button type="submit" disabled={loading}>Save Changes</button>
-              <button type="button" onClick={() => setEditMode(false)}>Cancel</button>
+          {editBio && (
+            <form onSubmit={handleUpdateProfile} className="edit-form">
+              <label>New Bio:</label>
+              <textarea
+                value={newBio}
+                onChange={(e) => setNewBio(e.target.value)}
+              />
+              <button type="submit" disabled={loading}>Save</button>
+              <button type="button" onClick={() => setEditBio(false)}>Cancel</button>
             </form>
           )}
         </div>
       </div>
+
+      {addPost && (
+        <div className="new-post">
+          <h2>Create a New Post</h2>
+          <form onSubmit={handleNewPost}>
+            <textarea
+              placeholder="What's on your mind?"
+              value={newBio}
+              onChange={(e) => setNewBio(e.target.value)}
+            />
+            <label>Upload Image:</label>
+            <input
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setNewProfilePic(file);
+                if (file) setProfilePicPreview(URL.createObjectURL(file));
+              }}
+            />
+            <button type="submit" disabled={loading}>Post</button>
+            <button type="button" onClick={() => setAddPost(false)}>Cancel</button>
+          </form>
+        </div>
+      )}
+
+      {addResource && (
+        <div className="resource-upload">
+          <h2>Upload Resource</h2>
+          <form onSubmit={handleUploadResource}>
+            <label>Title:</label>
+            <input type="text" name="title" required />
+            <label>Description:</label>
+            <textarea name="description" required />
+            <label>File:</label>
+            <input type="file" name="file" required />
+            <button type="submit" disabled={loading}>Upload</button>
+            <button type="button" onClick={() => setAddResource(false)}>Cancel</button>
+          </form>
+        </div>
+      )}
 
       <div className="posts">
         <h2>Posts</h2>
         {posts.length === 0 ? <p>No posts available</p> : posts.map(post => (
           <div key={post.id} className="post">
             <p>{post.content}</p>
+            {post.image_url && <img src={`http://localhost:5000${post.image_url}`} alt="Post" className="post-image" />}
           </div>
         ))}
       </div>

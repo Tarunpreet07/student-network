@@ -13,15 +13,49 @@ body {
   padding: 20px;
 }
 
-/* Profile Header */
+/* Profile Container Layout */
 .profile-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
   margin-top: 20px;
 }
 
+/* Sidebar Styling */
+.sidebar {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 220px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  margin-right: 30px;
+  height: fit-content;
+}
+
+.sidebar-button {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+  background-color: #0077cc;
+  color: #fff;
+  text-align: left;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.sidebar-button:hover {
+  background-color: #005fa3;
+}
+
+/* Profile Header */
 .profile-header {
   display: flex;
   flex-direction: row;
@@ -172,8 +206,45 @@ textarea {
   margin-top: 20px;
 }
 
+/* Form Buttons */
+.form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Edit Button (used elsewhere) */
+.edit-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: #005fa3;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+  .profile-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sidebar {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-button {
+    text-align: center;
+  }
+
   .profile-header {
     flex-direction: column;
     text-align: center;
@@ -211,24 +282,5 @@ textarea {
   .update-btn {
     font-size: 0.9rem;
   }
-}
-.edit-button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #0077cc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.edit-button:hover {
-  background-color: #005fa3;
-}
-
-.form-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
 }
 
