@@ -18,11 +18,11 @@ const Profile = () => {
     setLoading(true);
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+        const response = await fetch(`http://localhost:5000/api/users/${userId}/profile`);
         if (!response.ok) throw new Error('Failed to fetch profile');
         const data = await response.json();
         setProfile(data);
-        setProfilePicPreview(data.profile_pic);  // Set the profile picture URL
+        setProfilePicPreview(data.profile_pic);  // Set the profile picture path from backend
         setNewBio(data.bio);
       } catch (error) {
         setError(error.message);
@@ -85,7 +85,8 @@ const Profile = () => {
       <div className="profile-header">
         <div className="profile-pic-container">
           <img
-            src={profilePicPreview || '/default-profile-pic.png'}  // Use the profilePicPreview
+            // If the profile picture exists, use the backend-provided URL, otherwise use a default
+            src={profilePicPreview ? `http://localhost:5000${profilePicPreview}` : '/default-profile-pic.png'}
             alt="Profile"
             className="profile-pic"
           />
@@ -104,7 +105,7 @@ const Profile = () => {
                   const file = e.target.files[0];
                   setNewProfilePic(file);
                   if (file) {
-                    setProfilePicPreview(URL.createObjectURL(file));
+                    setProfilePicPreview(URL.createObjectURL(file)); // Preview for the user
                   }
                 }}
               />
