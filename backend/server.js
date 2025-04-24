@@ -122,28 +122,44 @@ app.get("/api/users/:id", (req, res) => {
   });
 });
 
+// Route to get full profile data
+app.get("/api/users/:id/profile", (req, res) => {
+  const { id } = req.params;
+  db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.length === 0) return res.status(404).json({ error: "User not found" });
+
+    const user = result[0];
+
+    // If profile_pic exists in the database, return its path
+    if (user.profile_pic) {
+      user.profile_pic = `/uploads/${user.profile_pic}`;
+    }
+
+    res.json(user);
+  });
+});
+
 // Route to update user profile
 app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
   const { id } = req.params;
   const bio = req.body.bio;
-  let profile_pic = req.file ? `/uploads/${req.file.filename}` : null;
+  let profile_pic = req.file ? req.file.filename : null; // Only store the filename, not the full path
 
   // Only update profile_pic if a new one is provided, otherwise keep it as it is
   const query = "UPDATE users SET profile_pic = COALESCE(?, profile_pic), bio = ? WHERE id = ?";
   db.query(query, [profile_pic, bio, id], (err, result) => {
     if (err) return res.status(500).json({ error: err });
 
+    // Return the updated profile with the correct path for profile_pic
     db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE id = ?", [id], (err, result) => {
       if (err) return res.status(500).json({ error: err });
       if (result.length === 0) return res.status(404).json({ error: "User not found" });
 
-      if (result[0].profile_pic) {
-        result[0].profile_pic = `/uploads/${result[0].profile_pic}`;
-      } else {
-        result[0].profile_pic = '/uploads/default-profile-pic.png'; // Default profile pic
-      }
+      const updatedUser = result[0];
 
-      res.json(result[0]);
+      // Send the profile data exactly as it is, no default image handling
+      res.json(updatedUser);
     });
   });
 });
