@@ -163,6 +163,46 @@ app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
     });
   });
 });
+app.post("/api/posts", upload.single('image'), (req, res) => {
+  const { user_id, content } = req.body;
+  const image = req.file ? req.file.filename : null;
+
+  if (!user_id || !content) return res.status(400).json({ error: "Missing fields" });
+
+  db.query(
+    "INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, NOW())",
+    [user_id, content],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+      res.json({ message: "Post added successfully", postId: result.insertId });
+    }
+  );
+});
+app.get("/api/posts/:userId", (req, res) => {
+  const { userId } = req.params;
+  db.query("SELECT * FROM posts WHERE user_id = ?", [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(result);
+  });
+});
+app.post("/api/resources", upload.single('file'), (req, res) => {
+  const { user_id, title, subject, tags } = req.body;
+  const file_url = req.file ? req.file.filename : null;
+
+  if (!user_id || !title || !file_url) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  db.query(
+    "INSERT INTO resources (user_id, title, file_url, subject, tags, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+    [user_id, title, file_url, subject, tags],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+      res.json({ message: "Resource uploaded successfully", resourceId: result.insertId });
+    }
+  );
+});
+
 
 app.get("/api/resources/:userId", (req, res) => {
   const { userId } = req.params;
