@@ -13,16 +13,22 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // New states for individual edits
+  // UI State
   const [editProfilePic, setEditProfilePic] = useState(false);
   const [editBio, setEditBio] = useState(false);
   const [addPost, setAddPost] = useState(false);
   const [addResource, setAddResource] = useState(false);
 
+  // Post creation state
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostImage, setNewPostImage] = useState(null);
+  const [postImagePreview, setPostImagePreview] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
+
     const fetchProfile = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/users/${userId}/profile`);
@@ -96,8 +102,8 @@ const Profile = () => {
   const handleNewPost = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('content', newBio);
-    if (newProfilePic) formData.append('image', newProfilePic);
+    formData.append('content', newPostContent);
+    if (newPostImage) formData.append('image', newPostImage);
 
     try {
       const response = await fetch(`http://localhost:5000/api/posts`, {
@@ -107,8 +113,9 @@ const Profile = () => {
       if (response.ok) {
         const postData = await response.json();
         setPosts([...posts, postData]);
-        setNewBio('');
-        setNewProfilePic(null);
+        setNewPostContent('');
+        setNewPostImage(null);
+        setPostImagePreview('');
         setAddPost(false);
       } else {
         throw new Error('Failed to create post');
@@ -121,8 +128,8 @@ const Profile = () => {
   const handleUploadResource = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     const formData = new FormData(e.target);
+
     try {
       const response = await fetch(`http://localhost:5000/api/resources`, {
         method: 'POST',
@@ -155,7 +162,7 @@ const Profile = () => {
         <div className="profile-pic-container">
           <img
             src={`http://localhost:5000${profilePicPreview}`}
-            alt="Profile"
+            alt="Profile Preview"
             className="profile-pic"
           />
         </div>
@@ -207,18 +214,21 @@ const Profile = () => {
           <form onSubmit={handleNewPost}>
             <textarea
               placeholder="What's on your mind?"
-              value={newBio}
-              onChange={(e) => setNewBio(e.target.value)}
+              value={newPostContent}
+              onChange={(e) => setNewPostContent(e.target.value)}
             />
             <label>Upload Image:</label>
             <input
               type="file"
               onChange={(e) => {
                 const file = e.target.files[0];
-                setNewProfilePic(file);
-                if (file) setProfilePicPreview(URL.createObjectURL(file));
+                setNewPostImage(file);
+                if (file) setPostImagePreview(URL.createObjectURL(file));
               }}
             />
+            {postImagePreview && (
+              <img src={postImagePreview} alt="Post Preview" className="post-image-preview" />
+            )}
             <button type="submit" disabled={loading}>Post</button>
             <button type="button" onClick={() => setAddPost(false)}>Cancel</button>
           </form>
@@ -246,7 +256,13 @@ const Profile = () => {
         {posts.length === 0 ? <p>No posts available</p> : posts.map(post => (
           <div key={post.id} className="post">
             <p>{post.content}</p>
-            {post.image_url && <img src={`http://localhost:5000${post.image_url}`} alt="Post" className="post-image" />}
+            {post.image_url && (
+              <img
+                src={`http://localhost:5000${post.image_url}`}
+                alt="Post"
+                className="post-image"
+              />
+            )}
           </div>
         ))}
       </div>
@@ -265,7 +281,9 @@ const Profile = () => {
               >
                 Download/View
               </a>
-              <p className="uploaded-date">Uploaded on: {new Date(resource.created_at).toLocaleString()}</p>
+              <p className="uploaded-date">
+                Uploaded on: {new Date(resource.created_at).toLocaleString()}
+              </p>
             </div>
           ))
         )}
