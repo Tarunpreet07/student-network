@@ -1,18 +1,17 @@
-require('dotenv').config(); // ✅ Load environment variables
+require('dotenv').config(); // Load environment variables
 
 const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || "localhost",      // ✅ from .env
-    user: process.env.DB_USER || "root",           // ✅ from .env
-    password: process.env.DB_PASSWORD || "tarun@1924",       // ✅ from .env
-    database: process.env.DB_NAME || "campus_network", // ✅ from .env
+    host: process.env.DB_HOST || "localhost",      
+    user: process.env.DB_USER || "root",           
+    password: process.env.DB_PASSWORD || "sakshi@12345",       
+    database: process.env.DB_NAME || "campus_network", 
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
 });
 
-// ✅ Check MySQL Connection
 async function checkConnection() {
     try {
         const connection = await pool.getConnection();
@@ -23,7 +22,6 @@ async function checkConnection() {
     }
 }
 
-// Call the function to check MySQL connection
 checkConnection();
 
-module.exports = pool;
+module.exports = pool;  // Export the pool for use in other files

@@ -213,5 +213,46 @@ app.get("/api/resources/:userId", (req, res) => {
 });
 
 
+// **Updated route to search users by name**
+app.get("/api/search", (req, res) => {
+  const { q } = req.query;  // Get the query parameter 'q'
+
+  if (!q) {
+    return res.status(400).json({ message: "Search query is required" });
+  }
+
+  // Query the database for users whose name matches the search term
+  const query = "SELECT id, name, email, profile_pic, bio FROM users WHERE name LIKE ?";
+
+  db.query(query, [`%${q}%`], (err, result) => {
+    if (err) {
+      console.error("Error searching users:", err);
+      return res.status(500).json({ message: "Error searching users" });
+    }
+
+    // If users are found, return them
+    if (result.length > 0) {
+      result.forEach(user => {
+        if (user.profile_pic) {
+          user.profile_pic = `/uploads/${user.profile_pic}`;
+        } else {
+          user.profile_pic = '/uploads/default-profile-pic.png'; // Default profile pic
+        }
+      });
+      
+      return res.json({
+        message: "Users found",
+        users: result // Return the list of matching users
+      });
+    }
+
+    // If no users found, return a message with an empty list
+    return res.json({
+      message: "No users found",
+      users: [] // Return an empty array if no users match the search term
+    });
+  });
+});
+
 // Start the server
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));

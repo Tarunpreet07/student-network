@@ -1,101 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // Your DB connection setup
+const path = require('path');
 
-// -------------------- Search Users --------------------
-router.get('/users', (req, res) => {
-  const { name, year, branch, bio } = req.query;
+// Correct the path to db.js inside the config folder
+const pool = require(path.join(__dirname, '..', 'config', 'db')); // Adjusted path to point to config/db.js
 
-  let query = 'SELECT id, name, email, branch, year, bio FROM users WHERE 1=1';
-  let params = [];
+// ✅ Route path fixed to just "/"
+router.get('/', async (req, res) => {
+  const { q, type } = req.query;
 
-  if (name) {
-    query += ' AND name LIKE ?';
-    params.push(`%${name}%`);
-  }
-  if (year) {
-    query += ' AND year = ?';
-    params.push(year);
-  }
-  if (branch) {
-    query += ' AND branch = ?';
-    params.push(branch);
-  }
-  if (bio) {
-    query += ' AND bio LIKE ?';
-    params.push(`%${bio}%`);
+  if (!q || !type) {
+    return res.status(400).json({ message: "Missing search query or type." });
   }
 
-  db.query(query, params, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    let rows = [];
 
-    const headers = ["ID", "Name", "Email", "Branch", "Year", "Bio"];
-    const rows = results.map(user => [
-      user.id, user.name, user.email, user.branch, user.year, user.bio
-    ]);
+    if (type === 'users') {
+      const searchQuery = `%${q.toLowerCase()}%`;
+      const [results] = await pool.execute(
+        `SELECT id, name, email, branch, year, bio
+         FROM users
+         WHERE LOWER(name) LIKE ?`,
+        [searchQuery]
+      );
 
-    res.json({ table: { headers, rows } });
-  });
-});
+      rows = results.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        branch: user.branch,
+        year: user.year,
+        bio: user.bio,
+      }));
+    }
 
-// -------------------- Search Resources (Notes) --------------------
-router.get('/resources', (req, res) => {
-  const { title, subject, tags } = req.query;
+    // ✅ Handle 'posts' search type
+    else if (type === 'posts') {
+      const searchQuery = `%${q.toLowerCase()}%`;
+      const [results] = await pool.execute(
+        `SELECT id, title, content, created_at
+         FROM posts
+         WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?`,
+        [searchQuery, searchQuery]
+      );
 
-  let query = 'SELECT id, title, subject, tags, downloads, uploaded_at FROM resources WHERE 1=1';
-  let params = [];
+      rows = results.map(post => ({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        createdAt: post.created_at,
+      }));
+    }
 
-  if (title) {
-    query += ' AND title LIKE ?';
-    params.push(`%${title}%`);
+    // ✅ Handle 'resources' search type
+    else if (type === 'resources') {
+      const searchQuery = `%${q.toLowerCase()}%`;
+      const [results] = await pool.execute(
+        `SELECT id, title, subject, tags, downloads, uploaded_at
+         FROM resources
+         WHERE LOWER(title) LIKE ? OR LOWER(subject) LIKE ? OR LOWER(tags) LIKE ?`,
+        [searchQuery, searchQuery, searchQuery]
+      );
+
+      rows = results.map(resource => ({
+        id: resource.id,
+        title: resource.title,
+        subject: resource.subject,
+        tags: resource.tags,
+        downloads: resource.downloads,
+        uploadedAt: resource.uploaded_at,
+      }));
+    }
+
+    // ✅ If no results found
+    if (rows.length === 0) {
+      return res.status(404).json({ message: `No ${type} found.` });
+    }
+
+    // ✅ Send response with results based on the search type
+    res.status(200).json({
+      message: `${type.charAt(0).toUpperCase() + type.slice(1)} found.`,
+      table: { rows }
+    });
+
+  } catch (error) {
+    console.error("❌ Search error:", error);
+    res.status(500).json({ message: "Search failed.", error: error.message });
   }
-  if (subject) {
-    query += ' AND subject LIKE ?';
-    params.push(`%${subject}%`);
-  }
-  if (tags) {
-    query += ' AND tags LIKE ?';
-    params.push(`%${tags}%`);
-  }
-
-  db.query(query, params, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    const headers = ["ID", "Title", "Subject", "Tags", "Downloads", "Uploaded At"];
-    const rows = results.map(note => [
-      note.id, note.title, note.subject, note.tags, note.downloads, note.uploaded_at
-    ]);
-
-    res.json({ table: { headers, rows } });
-  });
-});
-
-// -------------------- Search Posts --------------------
-router.get('/posts', (req, res) => {
-  const { title, content } = req.query;
-
-  let query = 'SELECT id, title, content, created_at FROM posts WHERE 1=1';
-  let params = [];
-
-  if (title) {
-    query += ' AND title LIKE ?';
-    params.push(`%${title}%`);
-  }
-  if (content) {
-    query += ' AND content LIKE ?';
-    params.push(`%${content}%`);
-  }
-
-  db.query(query, params, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    const headers = ["ID", "Title", "Content", "Created At"];
-    const rows = results.map(post => [
-      post.id, post.title, post.content, post.created_at
-    ]);
-
-    res.json({ table: { headers, rows } });
-  });
 });
 
 module.exports = router;

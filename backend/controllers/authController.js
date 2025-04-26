@@ -4,18 +4,24 @@ const jwt = require('jsonwebtoken');
 
 // Register Controller
 exports.register = async (req, res) => {
-  const { name, password } = req.body;
+  const { name, email, password, bio, year, branch } = req.body;
 
-  if (!name || !password) {
+  if (!name || !email || !password || !bio || !year || !branch) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
+    // Check if email already exists
+    const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (existingUser.length > 0) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
     const hash = bcrypt.hashSync(password, 10);
 
     const [result] = await db.query(
-      'INSERT INTO users (name, password) VALUES (?, ?)',
-      [name, hash]
+      'INSERT INTO users (name, email, password, bio, year, branch) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, email, hash, bio, year, branch]
     );
 
     res.status(201).json({ message: 'User registered!' });
