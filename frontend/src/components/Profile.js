@@ -13,16 +13,16 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // UI State
   const [editProfilePic, setEditProfilePic] = useState(false);
   const [editBio, setEditBio] = useState(false);
   const [addPost, setAddPost] = useState(false);
   const [addResource, setAddResource] = useState(false);
 
-  // Post creation state
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState(null);
   const [postImagePreview, setPostImagePreview] = useState('');
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -38,7 +38,7 @@ const Profile = () => {
         setProfilePicPreview(data.profile_pic || '/default-profile-pic.png');
         setNewBio(data.bio);
       } catch (error) {
-        setError(error.message);
+        setError(`Profile Error: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -46,23 +46,24 @@ const Profile = () => {
 
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/posts/${userId}`);
-        if (!response.ok) throw new Error('Failed to fetch posts');
-        const data = await response.json();
-        setPosts(data);
-      } catch (error) {
-        setError(error.message);
+        const response = await axios.get(`/api/posts/${userId}`);
+        setPosts(response.data);  // Assuming 'response.data' contains the posts
+      } catch (err) {
+        console.error("Error fetching posts:", err);
       }
     };
+    
 
     const fetchResources = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/resources/${userId}`);
-        if (!response.ok) throw new Error('Failed to fetch resources');
+        if (!response.ok) {
+          throw new Error('Failed to fetch resources');
+        }
         const data = await response.json();
         setResources(data);
       } catch (error) {
-        setError(error.message);
+        setError(`Resources Error: ${error.message}`);
       }
     };
 
@@ -70,6 +71,7 @@ const Profile = () => {
     fetchPosts();
     fetchResources();
   }, [userId]);
+
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -104,26 +106,32 @@ const Profile = () => {
     const formData = new FormData();
     formData.append('content', newPostContent);
     if (newPostImage) formData.append('image', newPostImage);
-
+  
     try {
       const response = await fetch(`http://localhost:5000/api/posts`, {
         method: 'POST',
         body: formData,
       });
-      if (response.ok) {
-        const postData = await response.json();
-        setPosts([...posts, postData]);
-        setNewPostContent('');
-        setNewPostImage(null);
-        setPostImagePreview('');
-        setAddPost(false);
-      } else {
-        throw new Error('Failed to create post');
+  
+      if (!response.ok) {
+        const errorData = await response.json();  // Get error details from response
+        console.error('Error Response:', errorData);  // Log the detailed error response
+        throw new Error(errorData.message || 'Failed to create post');
       }
+  
+      const postData = await response.json();
+      setPosts([...posts, postData]);
+      setNewPostContent('');
+      setNewPostImage(null);
+      setPostImagePreview('');
+      setAddPost(false);
     } catch (error) {
+      console.error('Post creation error:', error);  // Log the error for debugging
       setError(error.message);
     }
   };
+  
+  
 
   const handleUploadResource = async (e) => {
     e.preventDefault();
@@ -162,20 +170,38 @@ const Profile = () => {
         <div className="profile-pic-container">
           <img
             src={`http://localhost:5000${profilePicPreview}`}
-            alt="Profile Preview"
+            alt="Profile"
             className="profile-pic"
           />
         </div>
+
         <div className="profile-info">
           <h1 className="profile-name">{profile.name}</h1>
           <p className="profile-email">{profile.email}</p>
           <p className="profile-bio">{profile.bio || 'No bio available'}</p>
 
           <div className="profile-actions">
-            <button onClick={() => setEditProfilePic(true)}>Edit Profile Picture</button>
-            <button onClick={() => setEditBio(true)}>Edit Bio</button>
-            <button onClick={() => setAddPost(true)}>Add Post</button>
-            <button onClick={() => setAddResource(true)}>Upload Resource</button>
+            <div className="dropdown">
+              <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                Actions ⌄
+              </button>
+              {dropdownOpen && (
+                <div className="dropdown-menu">
+                  <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>
+                    Edit Profile Picture
+                  </button>
+                  <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>
+                    Edit Bio
+                  </button>
+                  <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>
+                    Add Post
+                  </button>
+                  <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>
+                    Upload Resource
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {editProfilePic && (
@@ -251,42 +277,25 @@ const Profile = () => {
         </div>
       )}
 
-      <div className="posts">
-        <h2>Posts</h2>
-        {posts.length === 0 ? <p>No posts available</p> : posts.map(post => (
-          <div key={post.id} className="post">
+      <div className="posts-section">
+        <h2>Your Posts</h2>
+        {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
+          <div key={post._id} className="post">
             <p>{post.content}</p>
-            {post.image_url && (
-              <img
-                src={`http://localhost:5000${post.image_url}`}
-                alt="Post"
-                className="post-image"
-              />
-            )}
+            {post.image && <img src={`http://localhost:5000${post.image}`} alt="Post" />}
           </div>
         ))}
       </div>
 
-      <div className="resources">
-        <h2>Resources</h2>
-        {resources.length === 0 ? <p>No resources uploaded</p> : (
-          resources.map(resource => (
-            <div key={resource.id} className="resource">
-              <h3>{resource.title}</h3>
-              <p>{resource.description}</p>
-              <a
-                href={`http://localhost:5000/uploads/${resource.file_path}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download/View
-              </a>
-              <p className="uploaded-date">
-                Uploaded on: {new Date(resource.created_at).toLocaleString()}
-              </p>
-            </div>
-          ))
-        )}
+      <div className="resources-section">
+        <h2>Your Resources</h2>
+        {resources.length === 0 ? <p>No resources available</p> : resources.map((resource) => (
+          <div key={resource._id} className="resource">
+            <h3>{resource.title}</h3>
+            <p>{resource.description}</p>
+            <a href={`http://localhost:5000${resource.file}`} download>Download</a>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -170,31 +170,42 @@ app.post("/api/posts", upload.single('image'), (req, res) => {
   if (!user_id || !content) return res.status(400).json({ error: "Missing fields" });
 
   db.query(
-    "INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, NOW())",
-    [user_id, content],
+    "INSERT INTO posts (user_id, content, created_at, image) VALUES (?, ?, NOW(), ?)",
+    [user_id, content, image],
     (err, result) => {
       if (err) return res.status(500).json({ error: err });
       res.json({ message: "Post added successfully", postId: result.insertId });
     }
   );
 });
+
+// Backend Route to get posts by user
 app.get("/api/posts/:userId", (req, res) => {
   const { userId } = req.params;
-  db.query("SELECT * FROM posts WHERE user_id = ?", [userId], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(result);
+
+  // Query to get posts for the user
+  const query = "SELECT * FROM posts WHERE user_id = ?";
+  
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Failed to fetch posts" });
+    }
+    res.status(200).json(result); // Return posts data
   });
 });
+
 app.post("/api/resources", upload.single('file'), (req, res) => {
   const { user_id, title, subject, tags } = req.body;
   const file_url = req.file ? req.file.filename : null;
 
+  // Check for required fields
   if (!user_id || !title || !file_url) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
+  // Insert into database
   db.query(
-    "INSERT INTO resources (user_id, title, file_url, subject, tags, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+    "INSERT INTO resources (user_id, title, file_url, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
     [user_id, title, file_url, subject, tags],
     (err, result) => {
       if (err) return res.status(500).json({ error: err });
@@ -204,14 +215,57 @@ app.post("/api/resources", upload.single('file'), (req, res) => {
 });
 
 
+
 app.get("/api/resources/:userId", (req, res) => {
   const { userId } = req.params;
-  db.query("SELECT id, title, description, file_path, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
+  db.query("SELECT id, title, file_url, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
     if (err) return res.status(500).json({ error: err });
     res.json(result);
   });
 });
 
+
+
+// **Updated route to search users by name**
+app.get("/api/search", (req, res) => {
+  const { q } = req.query;  // Get the query parameter 'q'
+
+  if (!q) {
+    return res.status(400).json({ message: "Search query is required" });
+  }
+
+  // Query the database for users whose name matches the search term
+  const query = "SELECT id, name, email, profile_pic, bio FROM users WHERE name LIKE ?";
+
+  db.query(query, [`%${q}%`], (err, result) => {
+    if (err) {
+      console.error("Error searching users:", err);
+      return res.status(500).json({ message: "Error searching users" });
+    }
+
+    // If users are found, return them
+    if (result.length > 0) {
+      result.forEach(user => {
+        if (user.profile_pic) {
+          user.profile_pic = `/uploads/${user.profile_pic}`;
+        } else {
+          user.profile_pic = '/uploads/default-profile-pic.png'; // Default profile pic
+        }
+      });
+      
+      return res.json({
+        message: "Users found",
+        users: result // Return the list of matching users
+      });
+    }
+
+    // If no users found, return a message with an empty list
+    return res.json({
+      message: "No users found",
+      users: [] // Return an empty array if no users match the search term
+    });
+  });
+});
 
 // Start the server
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));
