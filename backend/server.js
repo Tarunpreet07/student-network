@@ -136,7 +136,6 @@ app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
   });
 });
 
-// Create Post
 app.post("/api/posts", upload.single('image'), (req, res) => {
   const { user_id, content } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -145,7 +144,7 @@ app.post("/api/posts", upload.single('image'), (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   }
 
-  db.query("INSERT INTO posts (user_id, content, image, created_at) VALUES (?, ?, ?, NOW())",
+  db.query("INSERT INTO posts (user_id, content, image_url, created_at) VALUES (?, ?, ?, NOW())",
     [user_id, content, image],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -153,6 +152,9 @@ app.post("/api/posts", upload.single('image'), (req, res) => {
     }
   );
 });
+
+
+
 
 // Fetch posts
 app.get("/api/posts/:userId", (req, res) => {

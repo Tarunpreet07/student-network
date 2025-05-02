@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';  // ⬅️ Make sure you import axios
 import '../styles/profile.css';
 
 const Profile = () => {
@@ -31,12 +32,10 @@ const Profile = () => {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/profile`);
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        const data = await response.json();
-        setProfile(data);
-        setProfilePicPreview(data.profile_pic || '/default-profile-pic.png');
-        setNewBio(data.bio);
+        const response = await axios.get(`http://localhost:5000/api/users/${userId}/profile`);
+        setProfile(response.data);
+        setProfilePicPreview(response.data.profile_pic || '/default-profile-pic.png');
+        setNewBio(response.data.bio);
       } catch (error) {
         setError(`Profile Error: ${error.message}`);
       } finally {
@@ -46,22 +45,18 @@ const Profile = () => {
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`/api/posts/${userId}`);
-        setPosts(response.data);  // Assuming 'response.data' contains the posts
-      } catch (err) {
-        console.error("Error fetching posts:", err);
+        const response = await axios.get(`http://localhost:5000/api/posts/${userId}`);
+        setPosts(response.data);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+        setError('Failed to fetch posts.');
       }
     };
-    
 
     const fetchResources = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/resources/${userId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch resources');
-        }
-        const data = await response.json();
-        setResources(data);
+        const response = await axios.get(`http://localhost:5000/api/resources/${userId}`);
+        setResources(response.data);
       } catch (error) {
         setError(`Resources Error: ${error.message}`);
       }
@@ -72,30 +67,25 @@ const Profile = () => {
     fetchResources();
   }, [userId]);
 
-
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     const formData = new FormData();
     formData.append('bio', newBio);
     if (newProfilePic) formData.append('profile_pic', newProfilePic);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-        method: 'PUT',
-        body: formData,
+      await axios.put(`http://localhost:5000/api/users/${userId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (response.ok) {
-        alert('Profile updated successfully!');
-        setEditProfilePic(false);
-        setEditBio(false);
-        navigate(`/profile/${userId}`);
-      } else {
-        throw new Error('Failed to update profile');
-      }
+      alert('Profile updated successfully!');
+      setEditProfilePic(false);
+      setEditBio(false);
+      navigate(`/profile/${userId}`);
     } catch (error) {
-      setError(error.message);
+      setError(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
@@ -103,57 +93,48 @@ const Profile = () => {
 
   const handleNewPost = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     const formData = new FormData();
+    formData.append('userId', userId); // ⬅️ Important: Send userId along
     formData.append('content', newPostContent);
     if (newPostImage) formData.append('image', newPostImage);
-  
+
     try {
-      const response = await fetch(`http://localhost:5000/api/posts`, {
-        method: 'POST',
-        body: formData,
+      const response = await axios.post(`http://localhost:5000/api/posts`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-  
-      if (!response.ok) {
-        const errorData = await response.json();  // Get error details from response
-        console.error('Error Response:', errorData);  // Log the detailed error response
-        throw new Error(errorData.message || 'Failed to create post');
-      }
-  
-      const postData = await response.json();
-      setPosts([...posts, postData]);
+
+      setPosts([...posts, response.data]);
       setNewPostContent('');
       setNewPostImage(null);
       setPostImagePreview('');
       setAddPost(false);
     } catch (error) {
-      console.error('Post creation error:', error);  // Log the error for debugging
-      setError(error.message);
+      console.error('Post creation error:', error);
+      setError(error.response?.data?.message || 'Failed to create post');
+    } finally {
+      setLoading(false);
     }
   };
-  
-  
 
   const handleUploadResource = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     const formData = new FormData(e.target);
+    formData.append('userId', userId); // ⬅️ Also send userId with resource
 
     try {
-      const response = await fetch(`http://localhost:5000/api/resources`, {
-        method: 'POST',
-        body: formData,
+      const response = await axios.post(`http://localhost:5000/api/resources`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (response.ok) {
-        const resourceData = await response.json();
-        setResources([...resources, resourceData]);
-        setAddResource(false);
-        e.target.reset();
-      } else {
-        throw new Error('Failed to upload resource');
-      }
+      setResources([...resources, response.data]);
+      setAddResource(false);
+      e.target.reset();
     } catch (error) {
-      setError(error.message);
+      setError(error.response?.data?.message || 'Failed to upload resource');
     } finally {
       setLoading(false);
     }
@@ -166,6 +147,7 @@ const Profile = () => {
     <div className="profile-container">
       {error && <div className="error-message">{error}</div>}
 
+      {/* PROFILE HEADER */}
       <div className="profile-header">
         <div className="profile-pic-container">
           <img
@@ -180,6 +162,7 @@ const Profile = () => {
           <p className="profile-email">{profile.email}</p>
           <p className="profile-bio">{profile.bio || 'No bio available'}</p>
 
+          {/* DROPDOWN ACTIONS */}
           <div className="profile-actions">
             <div className="dropdown">
               <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -187,46 +170,34 @@ const Profile = () => {
               </button>
               {dropdownOpen && (
                 <div className="dropdown-menu">
-                  <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>
-                    Edit Profile Picture
-                  </button>
-                  <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>
-                    Edit Bio
-                  </button>
-                  <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>
-                    Add Post
-                  </button>
-                  <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>
-                    Upload Resource
-                  </button>
+                  <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>Edit Profile Picture</button>
+                  <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>Edit Bio</button>
+                  <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>Add Post</button>
+                  <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>Upload Resource</button>
                 </div>
               )}
             </div>
           </div>
 
+          {/* EDIT PROFILE PIC FORM */}
           {editProfilePic && (
             <form onSubmit={handleUpdateProfile} className="edit-form">
               <label>New Profile Picture:</label>
-              <input
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  setNewProfilePic(file);
-                  if (file) setProfilePicPreview(URL.createObjectURL(file));
-                }}
-              />
+              <input type="file" onChange={(e) => {
+                const file = e.target.files[0];
+                setNewProfilePic(file);
+                if (file) setProfilePicPreview(URL.createObjectURL(file));
+              }} />
               <button type="submit" disabled={loading}>Save</button>
               <button type="button" onClick={() => setEditProfilePic(false)}>Cancel</button>
             </form>
           )}
 
+          {/* EDIT BIO FORM */}
           {editBio && (
             <form onSubmit={handleUpdateProfile} className="edit-form">
               <label>New Bio:</label>
-              <textarea
-                value={newBio}
-                onChange={(e) => setNewBio(e.target.value)}
-              />
+              <textarea value={newBio} onChange={(e) => setNewBio(e.target.value)} />
               <button type="submit" disabled={loading}>Save</button>
               <button type="button" onClick={() => setEditBio(false)}>Cancel</button>
             </form>
@@ -234,6 +205,7 @@ const Profile = () => {
         </div>
       </div>
 
+      {/* ADD POST FORM */}
       {addPost && (
         <div className="new-post">
           <h2>Create a New Post</h2>
@@ -261,6 +233,7 @@ const Profile = () => {
         </div>
       )}
 
+      {/* ADD RESOURCE FORM */}
       {addResource && (
         <div className="resource-upload">
           <h2>Upload Resource</h2>
@@ -277,6 +250,7 @@ const Profile = () => {
         </div>
       )}
 
+      {/* POSTS LIST */}
       <div className="posts-section">
         <h2>Your Posts</h2>
         {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
@@ -287,6 +261,7 @@ const Profile = () => {
         ))}
       </div>
 
+      {/* RESOURCES LIST */}
       <div className="resources-section">
         <h2>Your Resources</h2>
         {resources.length === 0 ? <p>No resources available</p> : resources.map((resource) => (
