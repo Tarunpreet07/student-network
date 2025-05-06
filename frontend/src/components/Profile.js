@@ -225,34 +225,18 @@ const Profile = () => {
         </div>
       )}
 
-<div className="posts-feed">
-  {posts.length === 0 ? (
-    <p>No posts available</p>
-  ) : (
-    posts.map((post) => (
-      <div key={post._id} className="insta-post">
-        <div className="post-header">
-          <img
-            src={`http://localhost:5000${profile.profile_pic || '/default-profile-pic.png'}`}
-            alt="Profile"
-            className="mini-profile-pic"
-          />
-          <span className="post-username">{profile.name}</span>
-        </div>
-        {post.image && (
-          <img src={`http://localhost:5000${post.image}`} alt="Post" className="post-image" />
-        )}
-        <div className="post-actions">
-          <span>❤️ 123 likes</span>
-          <p><strong>{profile.name}</strong> {post.content}</p>
-          <p className="comment-text">View all 5 comments</p>
-          <input type="text" placeholder="Add a comment..." className="comment-input" />
-        </div>
-      </div>
-    ))
-  )}
-</div>
+      <div className="posts-section">
+        <h2>Your Posts</h2>
+        {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
+          <div key={post._id} className="post">
+            <p>{post.content}</p>
+            {post.image_url && (
+  <img src={`http://localhost:5000${post.image_url}`} alt="Post" />
+)}
 
+          </div>
+        ))}
+      </div>
 
       <div className="resources-section">
         <h2>Your Resources</h2>

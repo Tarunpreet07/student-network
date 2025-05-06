@@ -164,13 +164,14 @@ app.get("/api/posts/:userId", (req, res) => {
     if (err) return res.status(500).json({ message: "Failed to fetch posts" });
 
     const posts = result.map(post => {
-      // No need to prepend '/uploads/' again, the image URL is correct now
+      // No need to prepend '/uploads/' again, just return the image_url as is
       return post;
     });
 
     res.status(200).json(posts);
   });
 });
+
 
 
 // Upload resource
