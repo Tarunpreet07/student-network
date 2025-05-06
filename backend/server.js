@@ -1,3 +1,6 @@
+// File remains mostly the same, but I'll highlight the changes
+
+// Add necessary imports
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -8,6 +11,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+// Load routes
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
 const searchRoutes = require("./routes/searchRoutes");
@@ -95,7 +99,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// API Endpoints
+// --- API Endpoints ---
 
 // Fetch user profile
 app.get("/api/users/:id/profile", (req, res) => {
@@ -105,11 +109,7 @@ app.get("/api/users/:id/profile", (req, res) => {
     if (result.length === 0) return res.status(404).json({ error: "User not found" });
 
     const user = result[0];
-    if (user.profile_pic) {
-      user.profile_pic = `/uploads/${user.profile_pic}`;
-    } else {
-      user.profile_pic = '/uploads/default-profile-pic.png';
-    }
+    user.profile_pic = user.profile_pic ? `/uploads/${user.profile_pic}` : '/uploads/default-profile-pic.png';
 
     res.json(user);
   });
@@ -136,25 +136,23 @@ app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
   });
 });
 
-app.post("/api/posts", upload.single('image'), (req, res) => {
-  const { user_id, content } = req.body;
-  const image = req.file ? req.file.filename : null;
+// Create new post
+app.post('/api/posts', upload.single('image'), (req, res) => {
+  const { userId, content } = req.body;
+  const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-  if (!user_id || !content) {
-    return res.status(400).json({ error: "Missing fields" });
+  if (!userId || !content) {
+    return res.status(400).json({ message: 'userId and content are required' });
   }
 
-  db.query("INSERT INTO posts (user_id, content, image_url, created_at) VALUES (?, ?, ?, NOW())",
-    [user_id, content, image],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "Post created successfully", postId: result.insertId });
-    }
-  );
+  const query = "INSERT INTO posts (user_id, content, image_url, created_at) VALUES (?, ?, ?, NOW())";
+  db.query(query, [userId, content, image], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+
+    const post = { id: result.insertId, user_id: userId, content, image_url: image };
+    res.status(201).json(post);
+  });
 });
-
-
-
 
 // Fetch posts
 app.get("/api/posts/:userId", (req, res) => {
@@ -162,7 +160,13 @@ app.get("/api/posts/:userId", (req, res) => {
 
   db.query("SELECT * FROM posts WHERE user_id = ?", [userId], (err, result) => {
     if (err) return res.status(500).json({ message: "Failed to fetch posts" });
-    res.status(200).json(result);
+
+    const posts = result.map(post => {
+      post.image_url = post.image_url ? `/uploads/${post.image_url}` : null;
+      return post;
+    });
+
+    res.status(200).json(posts);
   });
 });
 
@@ -175,21 +179,27 @@ app.post("/api/resources", upload.single('file'), (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  db.query("INSERT INTO resources (user_id, title, subject, tags, file_url, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
-    [user_id, title, subject, tags, file_url],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "Resource uploaded successfully", resourceId: result.insertId });
-    }
-  );
+  const query = "INSERT INTO resources (user_id, title, subject, tags, file_url, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
+  db.query(query, [user_id, title, subject, tags, file_url], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.json({ message: "Resource uploaded successfully", resourceId: result.insertId });
+  });
 });
 
 // Fetch resources
 app.get("/api/resources/:userId", (req, res) => {
   const { userId } = req.params;
+
   db.query("SELECT id, title, file_url, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(result);
+
+    const resources = result.map(resource => ({
+      ...resource,
+      file_url: `/uploads/${resource.file_url}`
+    }));
+
+    res.json(resources);
   });
 });
 
@@ -197,9 +207,7 @@ app.get("/api/resources/:userId", (req, res) => {
 app.get("/api/search", (req, res) => {
   const { q } = req.query;
 
-  if (!q) {
-    return res.status(400).json({ message: "Search query is required" });
-  }
+  if (!q) return res.status(400).json({ message: "Search query is required" });
 
   db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE name LIKE ?", [`%${q}%`], (err, result) => {
     if (err) return res.status(500).json({ message: "Error searching users" });

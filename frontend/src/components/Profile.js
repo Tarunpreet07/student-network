@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';  // ⬅️ Make sure you import axios
+import axios from 'axios';
 import '../styles/profile.css';
 
 const Profile = () => {
@@ -29,7 +29,6 @@ const Profile = () => {
 
   useEffect(() => {
     setLoading(true);
-
     const fetchProfile = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/users/${userId}/profile`);
@@ -48,7 +47,6 @@ const Profile = () => {
         const response = await axios.get(`http://localhost:5000/api/posts/${userId}`);
         setPosts(response.data);
       } catch (error) {
-        console.error("Error fetching posts:", error);
         setError('Failed to fetch posts.');
       }
     };
@@ -59,6 +57,8 @@ const Profile = () => {
         setResources(response.data);
       } catch (error) {
         setError(`Resources Error: ${error.message}`);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -96,22 +96,21 @@ const Profile = () => {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('userId', userId); // ⬅️ Important: Send userId along
+    formData.append('userId', userId);
     formData.append('content', newPostContent);
     if (newPostImage) formData.append('image', newPostImage);
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/posts`, formData, {
+      const response = await axios.post('http://localhost:5000/api/posts', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setPosts([...posts, response.data]);
+      setPosts((prevPosts) => [...prevPosts, response.data]);
       setNewPostContent('');
       setNewPostImage(null);
       setPostImagePreview('');
       setAddPost(false);
     } catch (error) {
-      console.error('Post creation error:', error);
       setError(error.response?.data?.message || 'Failed to create post');
     } finally {
       setLoading(false);
@@ -123,14 +122,14 @@ const Profile = () => {
     setLoading(true);
 
     const formData = new FormData(e.target);
-    formData.append('userId', userId); // ⬅️ Also send userId with resource
+    formData.append('userId', userId);
 
     try {
       const response = await axios.post(`http://localhost:5000/api/resources`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setResources([...resources, response.data]);
+      setResources((prevResources) => [...prevResources, response.data]);
       setAddResource(false);
       e.target.reset();
     } catch (error) {
@@ -268,7 +267,7 @@ const Profile = () => {
           <div key={resource._id} className="resource">
             <h3>{resource.title}</h3>
             <p>{resource.description}</p>
-            <a href={`http://localhost:5000${resource.file}`} download>Download</a>
+            {resource.file && <a href={`http://localhost:5000${resource.file}`} target="_blank" rel="noopener noreferrer">Download</a>}
           </div>
         ))}
       </div>
