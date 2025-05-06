@@ -28,43 +28,27 @@ const Profile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoading(true);
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/users/${userId}/profile`);
-        setProfile(response.data);
-        setProfilePicPreview(response.data.profile_pic || '/default-profile-pic.png');
-        setNewBio(response.data.bio);
+        setLoading(true);
+        const profileResponse = await axios.get(`http://localhost:5000/api/users/${userId}/profile`);
+        setProfile(profileResponse.data);
+        setProfilePicPreview(profileResponse.data.profile_pic || '/default-profile-pic.png');
+        setNewBio(profileResponse.data.bio);
+
+        const postsResponse = await axios.get(`http://localhost:5000/api/posts/${userId}`);
+        setPosts(postsResponse.data);
+
+        const resourcesResponse = await axios.get(`http://localhost:5000/api/resources/${userId}`);
+        setResources(resourcesResponse.data);
       } catch (error) {
-        setError(`Profile Error: ${error.message}`);
+        setError(`Error fetching data: ${error.message}`);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/posts/${userId}`);
-        setPosts(response.data);
-      } catch (error) {
-        setError('Failed to fetch posts.');
-      }
-    };
-
-    const fetchResources = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/resources/${userId}`);
-        setResources(response.data);
-      } catch (error) {
-        setError(`Resources Error: ${error.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-    fetchPosts();
-    fetchResources();
+    fetchData();
   }, [userId]);
 
   const handleUpdateProfile = async (e) => {
@@ -79,13 +63,12 @@ const Profile = () => {
       await axios.put(`http://localhost:5000/api/users/${userId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-
       alert('Profile updated successfully!');
       setEditProfilePic(false);
       setEditBio(false);
       navigate(`/profile/${userId}`);
     } catch (error) {
-      setError(error.response?.data?.message || error.message);
+      setError(error.response?.data?.message || 'Error updating profile');
     } finally {
       setLoading(false);
     }
@@ -104,7 +87,6 @@ const Profile = () => {
       const response = await axios.post('http://localhost:5000/api/posts', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-
       setPosts((prevPosts) => [...prevPosts, response.data]);
       setNewPostContent('');
       setNewPostImage(null);
@@ -125,10 +107,9 @@ const Profile = () => {
     formData.append('userId', userId);
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/resources`, formData, {
+      const response = await axios.post('http://localhost:5000/api/resources', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-
       setResources((prevResources) => [...prevResources, response.data]);
       setAddResource(false);
       e.target.reset();
@@ -139,6 +120,18 @@ const Profile = () => {
     }
   };
 
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    setNewProfilePic(file);
+    if (file) setProfilePicPreview(URL.createObjectURL(file));
+  };
+
+  const handlePostImageChange = (e) => {
+    const file = e.target.files[0];
+    setNewPostImage(file);
+    if (file) setPostImagePreview(URL.createObjectURL(file));
+  };
+
   if (loading) return <div className="loading">Loading...</div>;
   if (!profile) return <div className="error-message">Profile not found.</div>;
 
@@ -146,7 +139,6 @@ const Profile = () => {
     <div className="profile-container">
       {error && <div className="error-message">{error}</div>}
 
-      {/* PROFILE HEADER */}
       <div className="profile-header">
         <div className="profile-pic-container">
           <img
@@ -161,7 +153,6 @@ const Profile = () => {
           <p className="profile-email">{profile.email}</p>
           <p className="profile-bio">{profile.bio || 'No bio available'}</p>
 
-          {/* DROPDOWN ACTIONS */}
           <div className="profile-actions">
             <div className="dropdown">
               <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -178,21 +169,15 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* EDIT PROFILE PIC FORM */}
           {editProfilePic && (
             <form onSubmit={handleUpdateProfile} className="edit-form">
               <label>New Profile Picture:</label>
-              <input type="file" onChange={(e) => {
-                const file = e.target.files[0];
-                setNewProfilePic(file);
-                if (file) setProfilePicPreview(URL.createObjectURL(file));
-              }} />
+              <input type="file" onChange={handleProfilePicChange} />
               <button type="submit" disabled={loading}>Save</button>
               <button type="button" onClick={() => setEditProfilePic(false)}>Cancel</button>
             </form>
           )}
 
-          {/* EDIT BIO FORM */}
           {editBio && (
             <form onSubmit={handleUpdateProfile} className="edit-form">
               <label>New Bio:</label>
@@ -204,7 +189,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ADD POST FORM */}
       {addPost && (
         <div className="new-post">
           <h2>Create a New Post</h2>
@@ -215,14 +199,7 @@ const Profile = () => {
               onChange={(e) => setNewPostContent(e.target.value)}
             />
             <label>Upload Image:</label>
-            <input
-              type="file"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                setNewPostImage(file);
-                if (file) setPostImagePreview(URL.createObjectURL(file));
-              }}
-            />
+            <input type="file" onChange={handlePostImageChange} />
             {postImagePreview && (
               <img src={postImagePreview} alt="Post Preview" className="post-image-preview" />
             )}
@@ -232,7 +209,6 @@ const Profile = () => {
         </div>
       )}
 
-      {/* ADD RESOURCE FORM */}
       {addResource && (
         <div className="resource-upload">
           <h2>Upload Resource</h2>
@@ -249,18 +225,35 @@ const Profile = () => {
         </div>
       )}
 
-      {/* POSTS LIST */}
-      <div className="posts-section">
-        <h2>Your Posts</h2>
-        {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
-          <div key={post._id} className="post">
-            <p>{post.content}</p>
-            {post.image && <img src={`http://localhost:5000${post.image}`} alt="Post" />}
-          </div>
-        ))}
+<div className="posts-feed">
+  {posts.length === 0 ? (
+    <p>No posts available</p>
+  ) : (
+    posts.map((post) => (
+      <div key={post._id} className="insta-post">
+        <div className="post-header">
+          <img
+            src={`http://localhost:5000${profile.profile_pic || '/default-profile-pic.png'}`}
+            alt="Profile"
+            className="mini-profile-pic"
+          />
+          <span className="post-username">{profile.name}</span>
+        </div>
+        {post.image && (
+          <img src={`http://localhost:5000${post.image}`} alt="Post" className="post-image" />
+        )}
+        <div className="post-actions">
+          <span>❤️ 123 likes</span>
+          <p><strong>{profile.name}</strong> {post.content}</p>
+          <p className="comment-text">View all 5 comments</p>
+          <input type="text" placeholder="Add a comment..." className="comment-input" />
+        </div>
       </div>
+    ))
+  )}
+</div>
 
-      {/* RESOURCES LIST */}
+
       <div className="resources-section">
         <h2>Your Resources</h2>
         {resources.length === 0 ? <p>No resources available</p> : resources.map((resource) => (

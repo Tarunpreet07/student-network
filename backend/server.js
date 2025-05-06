@@ -154,6 +154,8 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
   });
 });
 
+
+
 // Fetch posts
 app.get("/api/posts/:userId", (req, res) => {
   const { userId } = req.params;
@@ -162,13 +164,14 @@ app.get("/api/posts/:userId", (req, res) => {
     if (err) return res.status(500).json({ message: "Failed to fetch posts" });
 
     const posts = result.map(post => {
-      post.image_url = post.image_url ? `/uploads/${post.image_url}` : null;
+      // No need to prepend '/uploads/' again, the image URL is correct now
       return post;
     });
 
     res.status(200).json(posts);
   });
 });
+
 
 // Upload resource
 app.post("/api/resources", upload.single('file'), (req, res) => {
