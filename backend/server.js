@@ -92,11 +92,18 @@ io.on("connection", (socket) => {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.gif', '.pdf'];
+
+    if (!allowedTypes.includes(ext)) {
+      return cb(new Error('Invalid file type, only .jpg, .jpeg, .png, .gif, .pdf are allowed.'));
+    }
+
     const filename = `${Date.now()}${ext}`;
     cb(null, filename);
   }
 });
+
 const upload = multer({ storage });
 
 // --- API Endpoints ---
@@ -174,38 +181,59 @@ app.get("/api/posts/:userId", (req, res) => {
 
 
 
-// Upload resource
+/// Upload resource
 app.post("/api/resources", upload.single('file'), (req, res) => {
-  const { user_id, title, subject, tags } = req.body;
+  const { user_id, title, description } = req.body;
   const file_url = req.file ? req.file.filename : null;
 
   if (!user_id || !title || !file_url) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  const query = "INSERT INTO resources (user_id, title, subject, tags, file_url, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
-  db.query(query, [user_id, title, subject, tags, file_url], (err, result) => {
+  const query = "INSERT INTO resources (user_id, title, description, file_url, created_at) VALUES (?, ?, ?, ?, NOW())";
+  db.query(query, [user_id, title, description, file_url], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    res.json({ message: "Resource uploaded successfully", resourceId: result.insertId });
+    res.status(201).json({
+      message: "Resource uploaded successfully",
+      resource: {
+        id: result.insertId,
+        user_id,
+        title,
+        description,
+        file_url: `/uploads/${file_url}`,
+        created_at: new Date()
+      }
+    });
   });
 });
 
-// Fetch resources
+
+/// Fetch resources
 app.get("/api/resources/:userId", (req, res) => {
   const { userId } = req.params;
 
-  db.query("SELECT id, title, file_url, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  db.query(
+    "SELECT id, title, description, file_url, created_at FROM resources WHERE user_id = ?",
+    [userId],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: err.message });
+      }
 
-    const resources = result.map(resource => ({
-      ...resource,
-      file_url: `/uploads/${resource.file_url}`
-    }));
+      const resources = result.map(resource => ({
+        ...resource,
+        file_url: `/uploads/${resource.file_url}`
+      }));
 
-    res.json(resources);
-  });
+      res.status(200).json(resources);
+    }
+  );
 });
+
+
+
 
 // Search users
 app.get("/api/search", (req, res) => {

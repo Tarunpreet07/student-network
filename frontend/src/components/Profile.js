@@ -5,6 +5,9 @@ import '../styles/profile.css';
 
 const Profile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
+
+  // State variables
   const [profile, setProfile] = useState(null);
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState('');
@@ -14,23 +17,24 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Editing states for profile fields
   const [editProfilePic, setEditProfilePic] = useState(false);
   const [editBio, setEditBio] = useState(false);
   const [addPost, setAddPost] = useState(false);
   const [addResource, setAddResource] = useState(false);
 
+  // Post creation
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState(null);
   const [postImagePreview, setPostImagePreview] = useState('');
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const navigate = useNavigate();
-
+  // Fetch profile data on mount
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const profileResponse = await axios.get(`http://localhost:5000/api/users/${userId}/profile`);
         setProfile(profileResponse.data);
         setProfilePicPreview(profileResponse.data.profile_pic || '/default-profile-pic.png');
@@ -51,13 +55,14 @@ const Profile = () => {
     fetchData();
   }, [userId]);
 
-  const handleUpdateProfile = async (e) => {
+  // Handle updating profile (bio and profile pic)
+  const handleUpdateProfile = async (e, updateType) => {
     e.preventDefault();
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('bio', newBio);
-    if (newProfilePic) formData.append('profile_pic', newProfilePic);
+    if (updateType === 'bio') formData.append('bio', newBio);
+    if (updateType === 'profile_pic' && newProfilePic) formData.append('profile_pic', newProfilePic);
 
     try {
       await axios.put(`http://localhost:5000/api/users/${userId}`, formData, {
@@ -74,6 +79,7 @@ const Profile = () => {
     }
   };
 
+  // Handle new post creation
   const handleNewPost = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -99,12 +105,16 @@ const Profile = () => {
     }
   };
 
+  // Handle resource upload
   const handleUploadResource = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.target);
-    formData.append('userId', userId);
+    const formData = new FormData();
+    formData.append('title', e.target.title.value);
+    formData.append('description', e.target.description.value);
+    formData.append('file', e.target.file.files[0]);
+    formData.append('user_id', userId);
 
     try {
       const response = await axios.post('http://localhost:5000/api/resources', formData, {
@@ -120,6 +130,7 @@ const Profile = () => {
     }
   };
 
+  // Handle file changes for profile picture and post image
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
     setNewProfilePic(file);
@@ -132,6 +143,7 @@ const Profile = () => {
     if (file) setPostImagePreview(URL.createObjectURL(file));
   };
 
+  // Conditional rendering for loading and errors
   if (loading) return <div className="loading">Loading...</div>;
   if (!profile) return <div className="error-message">Profile not found.</div>;
 
@@ -139,6 +151,7 @@ const Profile = () => {
     <div className="profile-container">
       {error && <div className="error-message">{error}</div>}
 
+      {/* Profile Header */}
       <div className="profile-header">
         <div className="profile-pic-container">
           <img
@@ -153,6 +166,7 @@ const Profile = () => {
           <p className="profile-email">{profile.email}</p>
           <p className="profile-bio">{profile.bio || 'No bio available'}</p>
 
+          {/* Actions Dropdown */}
           <div className="profile-actions">
             <div className="dropdown">
               <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -169,8 +183,9 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* Edit Profile Picture Form */}
           {editProfilePic && (
-            <form onSubmit={handleUpdateProfile} className="edit-form">
+            <form onSubmit={(e) => handleUpdateProfile(e, 'profile_pic')} className="edit-form">
               <label>New Profile Picture:</label>
               <input type="file" onChange={handleProfilePicChange} />
               <button type="submit" disabled={loading}>Save</button>
@@ -178,8 +193,9 @@ const Profile = () => {
             </form>
           )}
 
+          {/* Edit Bio Form */}
           {editBio && (
-            <form onSubmit={handleUpdateProfile} className="edit-form">
+            <form onSubmit={(e) => handleUpdateProfile(e, 'bio')} className="edit-form">
               <label>New Bio:</label>
               <textarea value={newBio} onChange={(e) => setNewBio(e.target.value)} />
               <button type="submit" disabled={loading}>Save</button>
@@ -189,6 +205,7 @@ const Profile = () => {
         </div>
       </div>
 
+      {/* Add Post Form */}
       {addPost && (
         <div className="new-post">
           <h2>Create a New Post</h2>
@@ -209,6 +226,7 @@ const Profile = () => {
         </div>
       )}
 
+      {/* Resource Upload Form */}
       {addResource && (
         <div className="resource-upload">
           <h2>Upload Resource</h2>
@@ -225,21 +243,22 @@ const Profile = () => {
         </div>
       )}
 
+      {/* Posts Section */}
       <div className="posts-section">
-        <h2>Your Posts</h2>
+        <h2>Posts</h2>
         {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
           <div key={post._id} className="post">
             <p>{post.content}</p>
             {post.image_url && (
-  <img src={`http://localhost:5000${post.image_url}`} alt="Post" />
-)}
-
+              <img src={`http://localhost:5000${post.image_url}`} alt="Post" />
+            )}
           </div>
         ))}
       </div>
 
+      {/* Resources Section */}
       <div className="resources-section">
-        <h2>Your Resources</h2>
+        <h2>Resources</h2>
         {resources.length === 0 ? <p>No resources available</p> : resources.map((resource) => (
           <div key={resource._id} className="resource">
             <h3>{resource.title}</h3>
