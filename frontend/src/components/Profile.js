@@ -120,12 +120,14 @@ const Profile = () => {
       const response = await axios.post('http://localhost:5000/api/resources', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setResources((prevResources) => [...prevResources, response.data]);
+      // response.data.resource is the new resource object
+      setResources((prevResources) => [...prevResources, response.data.resource]);
       setAddResource(false);
       e.target.reset();
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to upload resource');
-    } finally {
+      setError(error.response?.data?.error || 'Failed to upload resource');
+    }
+     finally {
       setLoading(false);
     }
   };
@@ -259,13 +261,53 @@ const Profile = () => {
       {/* Resources Section */}
       <div className="resources-section">
         <h2>Resources</h2>
-        {resources.length === 0 ? <p>No resources available</p> : resources.map((resource) => (
-          <div key={resource._id} className="resource">
-            <h3>{resource.title}</h3>
-            <p>{resource.description}</p>
-            {resource.file && <a href={`http://localhost:5000${resource.file}`} target="_blank" rel="noopener noreferrer">Download</a>}
-          </div>
-        ))}
+        {resources.length === 0 ? (
+  <p>No resources available</p>
+) : (
+  resources.map((resource) => {
+    const pdfUrl = `http://localhost:5000${resource.file_url}`;
+
+    return (
+      <div key={resource.id} className="resource-item" style={{ marginBottom: '40px' }}>
+        <h3>{resource.title}</h3>
+        <p>{resource.description}</p>
+
+        {/* Preview PDF Button */}
+        <button
+          onClick={() => window.open(pdfUrl, '_blank')}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            marginRight: '10px',
+            cursor: 'pointer'
+          }}
+        >
+          Preview PDF
+        </button>
+
+        {/* Download PDF Button */}
+        <a
+  href={`http://localhost:5000/files/download/${resource.file_url.replace('/uploads/', '')}`}
+  style={{
+    padding: '10px 20px',
+    backgroundColor: '#28a745',
+    color: 'white',
+    textDecoration: 'none',
+    borderRadius: '5px'
+  }}
+>
+  Download PDF
+</a>
+
+      </div>
+    );
+  })
+)}
+
+
       </div>
     </div>
   );

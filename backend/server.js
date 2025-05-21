@@ -232,6 +232,25 @@ app.get("/api/resources/:userId", (req, res) => {
   );
 });
 
+app.get('/files/download/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, 'uploads', filename);
+
+  // Check if file exists first
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  // Set Content-Disposition header to attachment to force download
+  res.download(filePath, filename, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      if (!res.headersSent) {
+        res.status(500).send("Could not download the file.");
+      }
+    }
+  });
+});
 
 
 
