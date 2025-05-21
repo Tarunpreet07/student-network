@@ -246,6 +246,7 @@ const Profile = () => {
       )}
 
       {/* Posts Section */}
+      <div className="content-section"></div>
       <div className="posts-section">
         <h2>Posts</h2>
         {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
@@ -257,8 +258,8 @@ const Profile = () => {
           </div>
         ))}
       </div>
-
       {/* Resources Section */}
+      <div className="content-section">
       <div className="resources-section">
         <h2>Resources</h2>
         {resources.length === 0 ? (
@@ -308,6 +309,7 @@ const Profile = () => {
 )}
 
 
+      </div>
       </div>
     </div>
   );

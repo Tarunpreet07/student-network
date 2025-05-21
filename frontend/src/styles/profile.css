@@ -1,186 +1,358 @@
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
-  color: #333;
-}
-
-*, *::before, *::after {
-  box-sizing: border-box;
+  background: #f0f2f5;
+  color: #222;
+  width: 100vw;        /* full viewport width */
+  overflow-x: hidden;  /* prevent horizontal scroll */
 }
 
 .profile-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  width: 100%;         /* span full width */
+  max-width: none;     /* remove the 900px max-width */
+  margin: 40px 0;      /* vertical margin only, no auto to center */
+  padding: 40px 60px;  /* increased padding for breathing space on wide screens */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box; /* important for padding */
+  /* optional: add a max-width for readability on very large screens */
+  max-width: 1400px;   
+  margin-left: auto;
+  margin-right: auto;  /* centers the container */
 }
+
 
 .profile-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 30px;
   align-items: center;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 25px;
 }
 
 .profile-pic-container {
   flex-shrink: 0;
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  border: 3px solid #007BFF;
 }
 
 .profile-pic {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  display: block;
 }
 
 .profile-info {
   flex-grow: 1;
-}
-
-.profile-actions {
-  margin-top: 20px;
+  min-width: 250px;
 }
 
 .profile-name {
-  font-size: 2rem;
+  font-size: 2.4rem;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  color: #0a2540;
 }
 
 .profile-email {
-  font-size: 1.2rem;
-  color: gray;
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 10px;
+  font-style: italic;
 }
 
 .profile-bio {
-  font-size: 1rem;
-  margin: 10px 0;
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  white-space: pre-wrap;
 }
 
-.edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.profile-actions {
+  margin-top: 10px;
+  position: relative;
 }
 
-textarea {
-  width: 100%;
-  height: 100px;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #007BFF;
+.dropdown-toggle {
+  background: #007BFF;
   color: white;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  border-radius: 5px;
+  transition: background-color 0.25s ease;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,123,255,0.4);
 }
 
-button:hover {
+.dropdown-toggle:hover {
   background-color: #0056b3;
 }
 
-.new-post, .resource-upload {
-  margin-top: 30px;
+.dropdown-menu {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  min-width: 180px;
+  z-index: 10;
+  overflow: hidden;
+  animation: fadeInDropdown 0.3s ease forwards;
 }
 
-.posts-section, .resources-section {
-  margin-top: 40px;
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
 }
 
-.loading, .error-message {
-  text-align: center;
-  color: red;
-  font-size: 1.5rem;
+.dropdown-menu button {
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.error-message {
-  color: darkred;
+.dropdown-menu button:hover {
+  background-color: #007BFF;
+  color: white;
 }
 
-.post-image-preview {
-  max-width: 200px;
-  margin-top: 10px;
-}
-.posts-feed {
+/* Edit forms and inputs */
+.edit-form,
+.new-post form,
+.resource-upload form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 15px;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 8px #e0e0e0;
 }
 
-.insta-post {
-  background: white;
-  border: 1px solid #dbdbdb;
+.edit-form label,
+.new-post label,
+.resource-upload label {
+  font-weight: 600;
+  color: #222;
+}
+
+textarea,
+input[type="text"],
+input[type="file"] {
+  font-size: 1rem;
+  padding: 10px 12px;
+  border: 1.8px solid #ccc;
   border-radius: 8px;
-  max-width: 600px;
-  margin: 0 auto;
-  overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  resize: vertical;
+  transition: border-color 0.2s ease;
 }
 
-.post-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
+textarea:focus,
+input[type="text"]:focus,
+input[type="file"]:focus {
+  border-color: #007BFF;
+  outline: none;
 }
 
-.mini-profile-pic {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 10px;
+button[type="submit"],
+button[type="button"] {
+  width: max-content;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0,123,255,0.4);
+  transition: background-color 0.3s ease;
 }
 
-.post-username {
-  font-weight: bold;
-}
-
-.post-image {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-.post-actions {
-  padding: 10px;
-}
-
-.post-actions span {
-  font-weight: bold;
-}
-
-.comment-text {
-  color: #8e8e8e;
-  font-size: 14px;
-  margin: 5px 0;
-}
-
-.comment-input {
-  width: 100%;
-  border: none;
-  border-top: 1px solid #dbdbdb;
-  padding: 10px;
-  font-size: 14px;
-}
-.resource-item {
-  margin-bottom: 20px;
-}
-
-.preview-button,
-.download-button {
-  margin-right: 10px;
-  padding: 8px 16px;
-  background-color: #4a90e2;
+button[type="submit"] {
+  background-color: #007BFF;
   color: white;
+  border: none;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+button[type="button"] {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+}
+
+button[type="button"]:hover {
+  background-color: #999;
+  color: white;
+}
+
+/* Post and Resource Sections */
+.posts-section,
+.resources-section {
+  flex: 1 1 48%;        /* grow, shrink, basis */
+  background: transparent; /* keep original background if any */
+}
+.content-sections {
+  display: flex;
+  gap: 30px;            /* space between posts and resources */
+  margin-top: 45px;
+  flex-wrap: wrap;      /* wrap on smaller screens */
+}
+/* Maintain headings styles inside each section */
+.posts-section h2,
+.resources-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #0a2540;
+  border-bottom: 2px solid #007BFF;
+  padding-bottom: 6px;
+  font-weight: 700;
+}
+.post,
+.resource-item {
+  background: #fefefe;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.post p {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.post img {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.resource-item h3 {
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  color: #222;
+}
+
+.resource-item p {
+  margin-bottom: 15px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.resource-item button,
+.resource-item a {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   text-decoration: none;
-  border-radius: 5px;
+  display: inline-block;
+  margin-right: 12px;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,123,255,0.4);
+  transition: background-color 0.3s ease;
 }
 
-.download-button {
+.resource-item button {
+  background-color: #007BFF;
+  color: white;
+}
+
+.resource-item button:hover {
+  background-color: #0056b3;
+}
+
+.resource-item a {
   background-color: #28a745;
+  color: white;
+}
+
+.resource-item a:hover {
+  background-color: #1e7e34;
+}
+
+/* Post image preview */
+.post-image-preview {
+  max-width: 300px;
+  margin: 12px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Loading and Error */
+.loading,
+.error-message {
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 15px 0;
+}
+
+.loading {
+  color: #007BFF;
+  font-weight: 700;
+}
+
+.error-message {
+  color: #d93025;
+  font-weight: 600;
+  background: #fee5e5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 10px 15px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 700px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .content-sections {
+      flex-direction: column;
+    }
+  
+    .posts-section,
+    .resources-section {
+      flex: 1 1 100%; /* full width on small devices */
+    }
+  }
+  @media (max-width: 700px) {
+    .profile-container {
+      padding: 20px 15px; /* reduce padding on small screens */
+      margin: 20px 10px;
+    }
+  }
+  
+  .profile-info {
+    text-align: center;
+  }
+
+  .dropdown-menu {
+    left: auto;
+    right: 0;
+  }
 }
