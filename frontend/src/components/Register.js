@@ -15,7 +15,7 @@ const Register = () => {
       const res = await axios.post('http://localhost:5000/api/auth/register', form);
       setMessage(res.data.message);
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate(`/home/${res.data.userId}`), 1500);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
       setSuccess(false);

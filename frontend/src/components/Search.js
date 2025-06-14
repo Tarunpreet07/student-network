@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Search.css";
+import { useNavigate } from 'react-router-dom';
 
 const Search = () => {
   const [query, setQuery] = useState("");  // The search query
@@ -8,7 +9,7 @@ const Search = () => {
   const [results, setResults] = useState([]);  // Store search results
   const [loading, setLoading] = useState(false);  // Loading state
   const [error, setError] = useState("");  // Error message state
-
+  const navigate = useNavigate();
   const handleSearchTypeChange = (type) => {
     setSearchType(type);
     setResults([]);  // Clear the results when search type changes
@@ -46,6 +47,10 @@ const Search = () => {
     } finally {
       setLoading(false);  // Stop loading spinner
     }
+  };
+
+  const handleHeaderClick = (headerName) => {
+      navigate(`/profile/${headerName}`); // ✅ Correct redirect
   };
 
   return (
@@ -123,7 +128,7 @@ const Search = () => {
                 <tr key={index}>
                   {searchType === "users" && (
                     <>
-                      <td>{item.name}</td>
+                      <td onClick={() => handleHeaderClick(item.name)} style={{ cursor: "pointer" }}>{item.name}</td>
                       <td>{item.email}</td>
                       <td>{item.branch}</td>
                       <td>{item.year}</td>

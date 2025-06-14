@@ -21,7 +21,7 @@ const Login = () => {
 
       // ✅ Redirect to homepage after login
       setTimeout(() => {
-        navigate(`/home/${res.data.userId}`); // ✅ Correct redirect
+        navigate('/register/'); // ✅ Correct redirect
       }, 1000);
       
     } catch (err) {
