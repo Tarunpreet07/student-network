@@ -1,51 +1,55 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";  // <-- Import useNavigate
 import "./Search.css";
 
 const Search = () => {
-  const [query, setQuery] = useState("");  // The search query
-  const [searchType, setSearchType] = useState("users");  // Default search type
-  const [results, setResults] = useState([]);  // Store search results
-  const [loading, setLoading] = useState(false);  // Loading state
-  const [error, setError] = useState("");  // Error message state
+  const [query, setQuery] = useState("");  
+  const [searchType, setSearchType] = useState("users");  
+  const [results, setResults] = useState([]);  
+  const [loading, setLoading] = useState(false);  
+  const [error, setError] = useState("");  
+
+  const navigate = useNavigate();  // <-- Initialize navigate
 
   const handleSearchTypeChange = (type) => {
     setSearchType(type);
-    setResults([]);  // Clear the results when search type changes
-    setQuery("");  // Clear the query
-    setError("");  // Reset any previous error
+    setResults([]);  
+    setQuery("");  
+    setError("");  
   };
 
   const handleSearch = async () => {
-    if (!query.trim()) return;  // Prevent empty search queries
+    if (!query.trim()) return;  
 
-    setLoading(true);  // Start loading spinner
-    setError("");  // Reset error message
-    setResults([]);  // Clear previous results
+    setLoading(true);  
+    setError("");  
+    setResults([]);  
 
     try {
-      // Construct the API endpoint based on the search type
       const response = await axios.get(`http://localhost:5000/api/search`, {
         params: { q: query, type: searchType },
-        timeout: 5000,  // Timeout to avoid hanging requests
+        timeout: 5000,  
       });
 
-      console.log("Backend Response:", response.data);
-
-      const users = response.data?.table?.rows || [];  // Extract users from response
+      const users = response.data?.table?.rows || [];  
 
       if (users.length === 0) {
-        setError(`No users found.`);  // No results found
+        setError(`No ${searchType} found.`);  
       } else {
-        setResults(users);  // Set the search results in state
+        setResults(users);  
       }
     } catch (err) {
-      console.error("Search Error:", err);
       const backendMessage = err.response?.data?.message || err.response?.data?.error;
       setError(backendMessage || "An error occurred while searching.");
     } finally {
-      setLoading(false);  // Stop loading spinner
+      setLoading(false);  
     }
+  };
+
+  // New function to handle clicking on user name
+  const handleUserClick = (userId) => {
+    navigate(`/profile/${userId}`);
   };
 
   return (
@@ -123,7 +127,22 @@ const Search = () => {
                 <tr key={index}>
                   {searchType === "users" && (
                     <>
-                      <td>{item.name}</td>
+                      <td>
+                        {/* Make name clickable and navigate on click */}
+                        <button
+                          onClick={() => handleUserClick(item.id)}
+                          style={{
+                            cursor: "pointer",
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            color: "blue",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          {item.name}
+                        </button>
+                      </td>
                       <td>{item.email}</td>
                       <td>{item.branch}</td>
                       <td>{item.year}</td>
