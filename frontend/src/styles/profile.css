@@ -8,19 +8,29 @@ body {
   overflow-x: hidden;  /* prevent horizontal scroll */
 }
 
+.chat-header {
+  width: 100%;
+  background-color: #007bff;
+  color: white;
+  padding: 16px 32px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: auto;
+}
+
+
 .profile-container {
-  width: 100%;         /* span full width */
-  max-width: none;     /* remove the 900px max-width */
-  margin: 40px 0;      /* vertical margin only, no auto to center */
-  padding: 40px 60px;  /* increased padding for breathing space on wide screens */
+  width: 100vw;         /* Full viewport width */
+  margin: 0;            /* Remove margin that centers it */
+  padding: 40px 60px;   /* Keep inner spacing */
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box; /* important for padding */
-  /* optional: add a max-width for readability on very large screens */
-  max-width: 1400px;   
-  margin-left: auto;
-  margin-right: auto;  /* centers the container */
+  border-radius: 0;     /* Optional: flat edges for full-width feel */
+  box-shadow: none;     /* Optional: remove shadow for flush look */
+  box-sizing: border-box;
 }
 
 

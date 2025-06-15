@@ -142,6 +142,42 @@ app.put("/api/users/:id", upload.single('profile_pic'), (req, res) => {
     });
   });
 });
+app.put("/api/messages/markAsRead", (req, res) => {
+  const { senderId, receiverId } = req.body;
+
+  const query = `
+    UPDATE messages 
+    SET is_read = true 
+    WHERE sender_id = ? AND receiver_id = ? AND is_read = false
+  `;
+
+  db.query(query, [senderId, receiverId], (err, result) => {
+    if (err) return res.status(500).json({ error: "Failed to mark messages as read" });
+    res.json({ success: true });
+  });
+});
+app.get("/api/unread/:userId", (req, res) => {
+  const { userId } = req.params;
+
+  const query = `
+    SELECT sender_id, COUNT(*) AS unreadCount
+    FROM messages
+    WHERE receiver_id = ? AND is_read = false
+    GROUP BY sender_id
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: "Failed to fetch unread messages" });
+
+    const unreadMap = {};
+    results.forEach(row => {
+      unreadMap[row.sender_id] = row.unreadCount;
+    });
+
+    res.json(unreadMap);
+  });
+});
+
 
 // Create new post
 app.post('/api/posts', upload.single('image'), (req, res) => {
