@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Auth.css';
@@ -7,27 +7,41 @@ const Login = () => {
   const [form, setForm] = useState({ name: '', password: '' });
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(null);
-  const [showRegisterOption, setShowRegisterOption] = useState(false); // 👈 added state
+  const [showRegisterOption, setShowRegisterOption] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ prevent double submit
+
   const navigate = useNavigate();
+
+  // ✅ Redirect to /register if showRegisterOption is true
+  useEffect(() => {
+    if (showRegisterOption) {
+      navigate('/register');
+    }
+  }, [showRegisterOption, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return; // ✅ prevent multiple rapid submissions
+    setIsSubmitting(true);
+
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
+
       setMessage(res.data.message);
       setSuccess(true);
-
       localStorage.setItem('token', res.data.token);
 
-      // ✅ Redirect to homepage after login
+      // ✅ Redirect after login
       setTimeout(() => {
-        navigate(`/home/${res.data.userId}`); // ✅ Correct redirect
+        navigate(`/home/${res.data.userId}`);
       }, 1000);
 
     } catch (err) {
       setMessage(err.response?.data?.message || 'Login failed');
       setSuccess(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -49,12 +63,13 @@ const Login = () => {
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Logging in...' : 'Login'}
+        </button>
       </form>
 
       {message && <p className={success ? 'success' : 'error'}>{message}</p>}
 
-      {/* 👇 Only show register option if user clicks */}
       {!showRegisterOption ? (
         <p>
           Don't have an account?{' '}
@@ -73,22 +88,7 @@ const Login = () => {
             Register here
           </button>
         </p>
-      ) : (
-        <button
-          onClick={() => navigate('/register')}
-          style={{
-            marginTop: '10px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
-        >
-          Go to Registration Page
-        </button>
-      )}
+      ) : null}
     </div>
   );
 };

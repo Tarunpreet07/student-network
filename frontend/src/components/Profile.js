@@ -7,7 +7,6 @@ const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
 
-  // State variables
   const [profile, setProfile] = useState(null);
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState('');
@@ -17,20 +16,17 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Editing states for profile fields
   const [editProfilePic, setEditProfilePic] = useState(false);
   const [editBio, setEditBio] = useState(false);
   const [addPost, setAddPost] = useState(false);
   const [addResource, setAddResource] = useState(false);
 
-  // Post creation
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState(null);
   const [postImagePreview, setPostImagePreview] = useState('');
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Fetch profile data on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -55,7 +51,6 @@ const Profile = () => {
     fetchData();
   }, [userId]);
 
-  // Handle updating profile (bio and profile pic)
   const handleUpdateProfile = async (e, updateType) => {
     e.preventDefault();
     setLoading(true);
@@ -79,7 +74,6 @@ const Profile = () => {
     }
   };
 
-  // Handle new post creation
   const handleNewPost = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -105,7 +99,6 @@ const Profile = () => {
     }
   };
 
-  // Handle resource upload
   const handleUploadResource = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -120,19 +113,16 @@ const Profile = () => {
       const response = await axios.post('http://localhost:5000/api/resources', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      // response.data.resource is the new resource object
       setResources((prevResources) => [...prevResources, response.data.resource]);
       setAddResource(false);
       e.target.reset();
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to upload resource');
-    }
-     finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  // Handle file changes for profile picture and post image
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
     setNewProfilePic(file);
@@ -145,12 +135,28 @@ const Profile = () => {
     if (file) setPostImagePreview(URL.createObjectURL(file));
   };
 
-  // Conditional rendering for loading and errors
   if (loading) return <div className="loading">Loading...</div>;
   if (!profile) return <div className="error-message">Profile not found.</div>;
 
   return (
     <div className="profile-container">
+      {/* ✅ Updated: Back to Home Button */}
+      <div style={{ marginBottom: "20px" }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            fontSize: '16px',
+            background: 'none',
+            border: 'none',
+            color: '#007bff',
+            cursor: 'pointer',
+            textDecoration: 'underline'
+          }}
+        >
+          ← Back to Home
+        </button>
+      </div>
+
       {error && <div className="error-message">{error}</div>}
 
       {/* Profile Header */}
@@ -185,7 +191,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Edit Profile Picture Form */}
           {editProfilePic && (
             <form onSubmit={(e) => handleUpdateProfile(e, 'profile_pic')} className="edit-form">
               <label>New Profile Picture:</label>
@@ -195,7 +200,6 @@ const Profile = () => {
             </form>
           )}
 
-          {/* Edit Bio Form */}
           {editBio && (
             <form onSubmit={(e) => handleUpdateProfile(e, 'bio')} className="edit-form">
               <label>New Bio:</label>
@@ -207,7 +211,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Add Post Form */}
+      {/* Add Post */}
       {addPost && (
         <div className="new-post">
           <h2>Create a New Post</h2>
@@ -228,7 +232,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Resource Upload Form */}
+      {/* Upload Resource */}
       {addResource && (
         <div className="resource-upload">
           <h2>Upload Resource</h2>
@@ -245,7 +249,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Posts Section */}
+      {/* Posts */}
       <div className="content-section"></div>
       <div className="posts-section">
         <h2>Posts</h2>
@@ -258,58 +262,51 @@ const Profile = () => {
           </div>
         ))}
       </div>
-      {/* Resources Section */}
+
+      {/* Resources */}
       <div className="content-section">
-      <div className="resources-section">
-        <h2>Resources</h2>
-        {resources.length === 0 ? (
-  <p>No resources available</p>
-) : (
-  resources.map((resource) => {
-    const pdfUrl = `http://localhost:5000${resource.file_url}`;
-
-    return (
-      <div key={resource.id} className="resource-item" style={{ marginBottom: '40px' }}>
-        <h3>{resource.title}</h3>
-        <p>{resource.description}</p>
-
-        {/* Preview PDF Button */}
-        <button
-          onClick={() => window.open(pdfUrl, '_blank')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            marginRight: '10px',
-            cursor: 'pointer'
-          }}
-        >
-          Preview PDF
-        </button>
-
-        {/* Download PDF Button */}
-        <a
-  href={`http://localhost:5000/files/download/${resource.file_url.replace('/uploads/', '')}`}
-  style={{
-    padding: '10px 20px',
-    backgroundColor: '#28a745',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '5px'
-  }}
->
-  Download PDF
-</a>
-
-      </div>
-    );
-  })
-)}
-
-
-      </div>
+        <div className="resources-section">
+          <h2>Resources</h2>
+          {resources.length === 0 ? (
+            <p>No resources available</p>
+          ) : (
+            resources.map((resource) => {
+              const pdfUrl = `http://localhost:5000${resource.file_url}`;
+              return (
+                <div key={resource.id} className="resource-item" style={{ marginBottom: '40px' }}>
+                  <h3>{resource.title}</h3>
+                  <p>{resource.description}</p>
+                  <button
+                    onClick={() => window.open(pdfUrl, '_blank')}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px',
+                      marginRight: '10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Preview PDF
+                  </button>
+                  <a
+                    href={`http://localhost:5000/files/download/${resource.file_url.replace('/uploads/', '')}`}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      textDecoration: 'none',
+                      borderRadius: '5px'
+                    }}
+                  >
+                    Download PDF
+                  </a>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

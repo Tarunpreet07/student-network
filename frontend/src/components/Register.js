@@ -69,7 +69,19 @@ const Register = () => {
         />
         <button type="submit">Register</button>
       </form>
+
       {message && <p className={success ? 'success' : 'error'}>{message}</p>}
+
+      {/* 👇 Added "Already have an account?" link below the form */}
+      <p style={{ marginTop: '1rem' }}>
+        Already have an account?{' '}
+        <span
+          style={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => navigate('/login')}
+        >
+          Login
+        </span>
+      </p>
     </div>
   );
 };

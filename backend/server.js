@@ -1,6 +1,5 @@
 // File remains mostly the same, but I'll highlight the changes
 
-// Add necessary imports
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -11,7 +10,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Load routes
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
 const searchRoutes = require("./routes/searchRoutes");
@@ -22,16 +20,18 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Middleware
 app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type']
 }));
+
 app.use(express.json());
 app.use("/api", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
+
+// ✅ Serve uploaded files (profile pics, etc.)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Ensure uploads directory exists
@@ -40,7 +40,6 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// MySQL Connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -56,7 +55,6 @@ db.connect((err) => {
   console.log("✅ Connected to MySQL Database");
 });
 
-// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 A user connected");
 
@@ -88,7 +86,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Multer for file uploads
+// Multer for uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
@@ -106,9 +104,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// --- API Endpoints ---
-
-// Fetch user profile
+// User profile endpoint
 app.get("/api/users/:id/profile", (req, res) => {
   const { id } = req.params;
   db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE id = ?", [id], (err, result) => {
@@ -117,7 +113,6 @@ app.get("/api/users/:id/profile", (req, res) => {
 
     const user = result[0];
     user.profile_pic = user.profile_pic ? `/uploads/${user.profile_pic}` : '/uploads/default-profile-pic.png';
-
     res.json(user);
   });
 });
@@ -161,27 +156,17 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
   });
 });
 
-
-
 // Fetch posts
 app.get("/api/posts/:userId", (req, res) => {
   const { userId } = req.params;
-
   db.query("SELECT * FROM posts WHERE user_id = ?", [userId], (err, result) => {
     if (err) return res.status(500).json({ message: "Failed to fetch posts" });
 
-    const posts = result.map(post => {
-      // No need to prepend '/uploads/' again, just return the image_url as is
-      return post;
-    });
-
-    res.status(200).json(posts);
+    res.status(200).json(result);
   });
 });
 
-
-
-/// Upload resource
+// Upload resource
 app.post("/api/resources", upload.single('file'), (req, res) => {
   const { user_id, title, description } = req.body;
   const file_url = req.file ? req.file.filename : null;
@@ -208,68 +193,75 @@ app.post("/api/resources", upload.single('file'), (req, res) => {
   });
 });
 
-
-/// Fetch resources
+// Fetch resources
 app.get("/api/resources/:userId", (req, res) => {
   const { userId } = req.params;
 
-  db.query(
-    "SELECT id, title, description, file_url, created_at FROM resources WHERE user_id = ?",
-    [userId],
-    (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: err.message });
-      }
+  db.query("SELECT id, title, description, file_url, created_at FROM resources WHERE user_id = ?", [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
 
-      const resources = result.map(resource => ({
-        ...resource,
-        file_url: `/uploads/${resource.file_url}`
-      }));
+    const resources = result.map(resource => ({
+      ...resource,
+      file_url: `/uploads/${resource.file_url}`
+    }));
 
-      res.status(200).json(resources);
-    }
-  );
+    res.status(200).json(resources);
+  });
 });
 
+// File download
 app.get('/files/download/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(__dirname, 'uploads', filename);
 
-  // Check if file exists first
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: "File not found" });
   }
 
-  // Set Content-Disposition header to attachment to force download
   res.download(filePath, filename, (err) => {
-    if (err) {
-      console.error('Error sending file:', err);
-      if (!res.headersSent) {
-        res.status(500).send("Could not download the file.");
-      }
+    if (err && !res.headersSent) {
+      res.status(500).send("Could not download the file.");
     }
   });
 });
 
-
-
-// Search users
+// ✅ Search users — PATCHED
 app.get("/api/search", (req, res) => {
-  const { q } = req.query;
+  const { q, type } = req.query;
+  if (!q || !type) return res.status(400).json({ error: "Missing query or type" });
 
-  if (!q) return res.status(400).json({ message: "Search query is required" });
+  let query = "";
+  let values = [`%${q}%`, `%${q}%`];
 
-  db.query("SELECT id, name, email, profile_pic, bio FROM users WHERE name LIKE ?", [`%${q}%`], (err, result) => {
-    if (err) return res.status(500).json({ message: "Error searching users" });
+  switch (type) {
+    case "users":
+      query = "SELECT id, name, branch, year, profile_pic FROM users WHERE name LIKE ? OR branch LIKE ?";
+      break;
 
-    result.forEach(user => {
-      user.profile_pic = user.profile_pic ? `/uploads/${user.profile_pic}` : '/uploads/default-profile-pic.png';
-    });
+    case "posts":
+      query = `
+        SELECT id, content, created_at AS createdAt 
+        FROM posts 
+        WHERE LOWER(content) LIKE LOWER(?) OR LOWER(image_url) LIKE LOWER(?)`;
+      break;
 
-    res.json({ message: result.length ? "Users found" : "No users found", users: result });
+    case "resources":
+      query = `
+        SELECT id, title, description AS subject, created_at AS uploadedAt, 
+               0 AS downloads, '' AS tags 
+        FROM resources 
+        WHERE LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)`;
+      break;
+
+    default:
+      return res.status(400).json({ error: "Invalid search type" });
+  }
+
+  db.query(query, values, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.json({ table: { rows: results } });
   });
 });
 
-// Start Server
 server.listen(5000, () => console.log("🚀 Server running on port 5000"));

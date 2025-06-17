@@ -1,59 +1,64 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";  // <-- Import useNavigate
+import { useNavigate, Link } from "react-router-dom";
 import "./Search.css";
 
 const Search = () => {
-  const [query, setQuery] = useState("");  
-  const [searchType, setSearchType] = useState("users");  
-  const [results, setResults] = useState([]);  
-  const [loading, setLoading] = useState(false);  
-  const [error, setError] = useState("");  
+  const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState("users");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const navigate = useNavigate();  // <-- Initialize navigate
+  const navigate = useNavigate();
 
   const handleSearchTypeChange = (type) => {
     setSearchType(type);
-    setResults([]);  
-    setQuery("");  
-    setError("");  
+    setResults([]);
+    setQuery("");
+    setError("");
   };
 
   const handleSearch = async () => {
-    if (!query.trim()) return;  
+    if (!query.trim()) return;
 
-    setLoading(true);  
-    setError("");  
-    setResults([]);  
+    setLoading(true);
+    setError("");
+    setResults([]);
 
     try {
       const response = await axios.get(`http://localhost:5000/api/search`, {
         params: { q: query, type: searchType },
-        timeout: 5000,  
+        timeout: 5000,
       });
 
-      const users = response.data?.table?.rows || [];  
+      const rows = response.data?.table?.rows || [];
 
-      if (users.length === 0) {
-        setError(`No ${searchType} found.`);  
+      if (rows.length === 0) {
+        setError(`No ${searchType} found.`);
       } else {
-        setResults(users);  
+        setResults(rows);
       }
     } catch (err) {
       const backendMessage = err.response?.data?.message || err.response?.data?.error;
       setError(backendMessage || "An error occurred while searching.");
     } finally {
-      setLoading(false);  
+      setLoading(false);
     }
   };
 
-  // New function to handle clicking on user name
   const handleUserClick = (userId) => {
     navigate(`/profile/${userId}`);
   };
 
   return (
     <div className="search-container">
+      <div style={{ marginBottom: "20px" }}>
+        <Link to="/home/1" className="back-to-home-link">
+          ← Back to Home
+        </Link>
+      </div>
+
       <h1>Search</h1>
       <div className="search-bar">
         <input
@@ -72,18 +77,7 @@ const Search = () => {
         >
           Users
         </button>
-        <button
-          className={searchType === "posts" ? "active" : ""}
-          onClick={() => handleSearchTypeChange("posts")}
-        >
-          Posts
-        </button>
-        <button
-          className={searchType === "resources" ? "active" : ""}
-          onClick={() => handleSearchTypeChange("resources")}
-        >
-          Notes
-        </button>
+        {/* Removed Posts and Notes buttons */}
       </div>
 
       {loading && <p>Loading...</p>}
@@ -98,26 +92,8 @@ const Search = () => {
                 {searchType === "users" && (
                   <>
                     <th>Name</th>
-                    <th>Email</th>
                     <th>Branch</th>
                     <th>Year</th>
-                    <th>Bio</th>
-                  </>
-                )}
-                {searchType === "posts" && (
-                  <>
-                    <th>Title</th>
-                    <th>Content</th>
-                    <th>Created At</th>
-                  </>
-                )}
-                {searchType === "resources" && (
-                  <>
-                    <th>Title</th>
-                    <th>Subject</th>
-                    <th>Tags</th>
-                    <th>Downloads</th>
-                    <th>Uploaded At</th>
                   </>
                 )}
               </tr>
@@ -128,7 +104,6 @@ const Search = () => {
                   {searchType === "users" && (
                     <>
                       <td>
-                        {/* Make name clickable and navigate on click */}
                         <button
                           onClick={() => handleUserClick(item.id)}
                           style={{
@@ -143,26 +118,8 @@ const Search = () => {
                           {item.name}
                         </button>
                       </td>
-                      <td>{item.email}</td>
                       <td>{item.branch}</td>
                       <td>{item.year}</td>
-                      <td>{item.bio}</td>
-                    </>
-                  )}
-                  {searchType === "posts" && (
-                    <>
-                      <td>{item.title}</td>
-                      <td>{item.content}</td>
-                      <td>{item.createdAt}</td>
-                    </>
-                  )}
-                  {searchType === "resources" && (
-                    <>
-                      <td>{item.title}</td>
-                      <td>{item.subject}</td>
-                      <td>{item.tags}</td>
-                      <td>{item.downloads}</td>
-                      <td>{item.uploadedAt}</td>
                     </>
                   )}
                 </tr>

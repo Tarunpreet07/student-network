@@ -49,6 +49,8 @@ const Homepage = () => {
 
       {/* Main Content */}
       <div className={`main-content ${isSidebarVisible ? 'shift' : ''}`}>
+        {/* Removed Back to Registration Button */}
+
         {/* Post 1 */}
         <div className="post">
           <div className="post-header">

@@ -3,8 +3,8 @@
   margin: 60px auto;
   padding: 30px;
   border-radius: 8px;
-  background: #f9f9f9;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff; /* Changed from #f9f9f9 to white for a cleaner look */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow for elevation */
   text-align: center;
 }
 
@@ -13,22 +13,30 @@
   width: 100%;
   margin: 10px 0;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #bbb; /* Slightly darker border for clarity */
   border-radius: 4px;
+  background-color: #fdfdfd; /* Subtle contrast with the white container */
+}
+
+.auth-form input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.4); /* Add focus effect */
 }
 
 .auth-form button {
   padding: 12px 20px;
-  background: #007bff;
+  background: #0069d9; /* Deeper blue for a modern, professional look */
   color: white;
   border: none;
   cursor: pointer;
   width: 100%;
   border-radius: 4px;
+  transition: background 0.3s ease; /* Smooth hover transition */
 }
 
 .auth-form button:hover {
-  background: #0056b3;
+  background: #004a99; /* Slightly darker blue on hover */
 }
 
 .success {
