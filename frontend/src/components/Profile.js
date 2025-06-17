@@ -139,6 +139,7 @@ const Profile = () => {
   if (!profile) return <div className="error-message">Profile not found.</div>;
 
   return (
+<<<<<<< HEAD
     <div className="profile-container">
       {/* ✅ Updated: Back to Home Button */}
       <div style={{ marginBottom: "20px" }}>
@@ -167,28 +168,114 @@ const Profile = () => {
             alt="Profile"
             className="profile-pic"
           />
+=======
+    <>
+      <div className="chat-header">
+        <h2>Campus-Network</h2>
+      </div>
+  
+      <div className="profile-container">
+        {error && <div className="error-message">{error}</div>}
+  
+        {/* Profile Header */}
+        <div className="profile-header">
+          <div className="profile-pic-container">
+            <img
+              src={`http://localhost:5000${profilePicPreview}`}
+              alt="Profile"
+              className="profile-pic"
+            />
+          </div>
+  
+          <div className="profile-info">
+            <h1 className="profile-name">{profile.name}</h1>
+            <p className="profile-email">{profile.email}</p>
+            <p className="profile-bio">{profile.bio || 'No bio available'}</p>
+  
+            <div className="profile-actions">
+              <div className="dropdown">
+                <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                  Actions ⌄
+                </button>
+                {dropdownOpen && (
+                  <div className="dropdown-menu">
+                    <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>Edit Profile Picture</button>
+                    <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>Edit Bio</button>
+                    <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>Add Post</button>
+                    <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>Upload Resource</button>
+                  </div>
+                )}
+              </div>
+            </div>
+  
+            {editProfilePic && (
+              <form onSubmit={(e) => handleUpdateProfile(e, 'profile_pic')} className="edit-form">
+                <label>New Profile Picture:</label>
+                <input type="file" onChange={handleProfilePicChange} />
+                <button type="submit" disabled={loading}>Save</button>
+                <button type="button" onClick={() => setEditProfilePic(false)}>Cancel</button>
+              </form>
+            )}
+  
+            {editBio && (
+              <form onSubmit={(e) => handleUpdateProfile(e, 'bio')} className="edit-form">
+                <label>New Bio:</label>
+                <textarea value={newBio} onChange={(e) => setNewBio(e.target.value)} />
+                <button type="submit" disabled={loading}>Save</button>
+                <button type="button" onClick={() => setEditBio(false)}>Cancel</button>
+              </form>
+            )}
+          </div>
+>>>>>>> 4a7abc0784cf94ac995cf0736cd1fc1357abf172
         </div>
-
-        <div className="profile-info">
-          <h1 className="profile-name">{profile.name}</h1>
-          <p className="profile-email">{profile.email}</p>
-          <p className="profile-bio">{profile.bio || 'No bio available'}</p>
-
-          {/* Actions Dropdown */}
-          <div className="profile-actions">
-            <div className="dropdown">
-              <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                Actions ⌄
-              </button>
-              {dropdownOpen && (
-                <div className="dropdown-menu">
-                  <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>Edit Profile Picture</button>
-                  <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>Edit Bio</button>
-                  <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>Add Post</button>
-                  <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>Upload Resource</button>
-                </div>
+  
+        {addPost && (
+          <div className="new-post">
+            <h2>Create a New Post</h2>
+            <form onSubmit={handleNewPost}>
+              <textarea
+                placeholder="What's on your mind?"
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+              />
+              <label>Upload Image:</label>
+              <input type="file" onChange={handlePostImageChange} />
+              {postImagePreview && (
+                <img src={postImagePreview} alt="Post Preview" className="post-image-preview" />
+              )}
+              <button type="submit" disabled={loading}>Post</button>
+              <button type="button" onClick={() => setAddPost(false)}>Cancel</button>
+            </form>
+          </div>
+        )}
+  
+        {addResource && (
+          <div className="resource-upload">
+            <h2>Upload Resource</h2>
+            <form onSubmit={handleUploadResource}>
+              <label>Title:</label>
+              <input type="text" name="title" required />
+              <label>Description:</label>
+              <textarea name="description" required />
+              <label>File:</label>
+              <input type="file" name="file" required />
+              <button type="submit" disabled={loading}>Upload</button>
+              <button type="button" onClick={() => setAddResource(false)}>Cancel</button>
+            </form>
+          </div>
+        )}
+  
+        <div className="content-section"></div>
+        <div className="posts-section">
+          <h2>Posts</h2>
+          {posts.length === 0 ? <p>No posts available</p> : posts.map((post) => (
+            <div key={post._id} className="post">
+              <p>{post.content}</p>
+              {post.image_url && (
+                <img src={`http://localhost:5000${post.image_url}`} alt="Post" />
               )}
             </div>
+<<<<<<< HEAD
           </div>
 
           {editProfilePic && (
@@ -258,10 +345,57 @@ const Profile = () => {
             <p>{post.content}</p>
             {post.image_url && (
               <img src={`http://localhost:5000${post.image_url}`} alt="Post" />
+=======
+          ))}
+        </div>
+  
+        <div className="content-section">
+          <div className="resources-section">
+            <h2>Resources</h2>
+            {resources.length === 0 ? (
+              <p>No resources available</p>
+            ) : (
+              resources.map((resource) => {
+                const pdfUrl = `http://localhost:5000${resource.file_url}`;
+                return (
+                  <div key={resource.id} className="resource-item" style={{ marginBottom: '40px' }}>
+                    <h3>{resource.title}</h3>
+                    <p>{resource.description}</p>
+                    <button
+                      onClick={() => window.open(pdfUrl, '_blank')}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        marginRight: '10px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Preview PDF
+                    </button>
+                    <a
+                      href={`http://localhost:5000/files/download/${resource.file_url.replace('/uploads/', '')}`}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '5px'
+                      }}
+                    >
+                      Download PDF
+                    </a>
+                  </div>
+                );
+              })
+>>>>>>> 4a7abc0784cf94ac995cf0736cd1fc1357abf172
             )}
           </div>
-        ))}
+        </div>
       </div>
+<<<<<<< HEAD
 
       {/* Resources */}
       <div className="content-section">
@@ -309,7 +443,11 @@ const Profile = () => {
         </div>
       </div>
     </div>
+=======
+    </>
+>>>>>>> 4a7abc0784cf94ac995cf0736cd1fc1357abf172
   );
+  
 };
 
 export default Profile;

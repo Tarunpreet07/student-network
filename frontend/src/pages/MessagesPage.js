@@ -10,6 +10,7 @@ const MessagesPage = () => {
   const { user_id } = useParams();
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -35,126 +36,161 @@ const MessagesPage = () => {
     }
   }, [user_id]);
 
-  // Fetch messages between current user and selected user
+  // Fetch unread message counts
+  useEffect(() => {
+    if (currentUser) {
+      axios
+        .get(`http://localhost:5000/api/unread/${currentUser.id}`)
+        .then((res) => setUnreadCounts(res.data))
+        .catch((err) => console.error("Error fetching unread counts:", err));
+    }
+  }, [currentUser]);
+
+  // Fetch messages between current and selected user
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
 
     axios
-      .get(
-        `http://localhost:5000/api/messages/${currentUser.id}/${selectedUser.id}`
-      )
+      .get(`http://localhost:5000/api/messages/${currentUser.id}/${selectedUser.id}`)
       .then((res) => setMessages(res.data))
       .catch((err) => console.error("Error fetching messages:", err));
   }, [currentUser, selectedUser]);
 
-  // Socket listener for incoming messages
+  // Listen for incoming messages
   useEffect(() => {
     if (!currentUser) return;
 
     const listener = `receiveMessage:${currentUser.id}`;
 
     const handleIncoming = (message) => {
-      // Normalize if needed
       const normalizedMessage = {
         ...message,
         sender_id: message.sender_id || message.senderId,
       };
 
-      // Prevent duplicate messages by checking if the message already exists
-      const isMessageExists = messages.some((msg) => msg.id === message.id);
-      if (!isMessageExists && normalizedMessage.sender_id !== currentUser.id) {
-        setMessages((prev) => [...prev, normalizedMessage]);
+      const isExists = messages.some((msg) => msg.id === message.id);
+      if (!isExists) {
+        // Add to message list only if sender is selected user
+        if (selectedUser?.id === normalizedMessage.sender_id) {
+          setMessages((prev) => [...prev, normalizedMessage]);
+        } else {
+          setUnreadCounts((prev) => ({
+            ...prev,
+            [normalizedMessage.sender_id]: (prev[normalizedMessage.sender_id] || 0) + 1,
+          }));
+        }
       }
     };
 
     socket.on(listener, handleIncoming);
-
     return () => socket.off(listener, handleIncoming);
-  }, [currentUser, messages]);
+  }, [currentUser, messages, selectedUser]);
 
-  // Scroll to latest message
+  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const selectUser = (user) => {
+  // Handle user selection and mark messages as read
+  const selectUser = async (user) => {
     setSelectedUser(user);
     setMessages([]);
+
+    try {
+      await axios.put("http://localhost:5000/api/messages/markAsRead", {
+        senderId: user.id,
+        receiverId: currentUser.id,
+      });
+
+      // Refresh messages
+      const res = await axios.get(
+        `http://localhost:5000/api/messages/${currentUser.id}/${user.id}`
+      );
+      setMessages(res.data);
+
+      // Clear unread count
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [user.id]: 0,
+      }));
+    } catch (err) {
+      console.error("Error marking or fetching messages:", err);
+    }
   };
 
-  const sendMessage = async () => {
+  // Handle sending message
+  const sendMessage = () => {
     if (!newMessage.trim() || !currentUser || !selectedUser) return;
 
-    const messageData = {
+    const msgData = {
       senderId: currentUser.id,
       receiverId: selectedUser.id,
       message: newMessage,
     };
 
-    try {
-      // Emit the message through WebSocket
-      socket.emit("sendMessage", messageData);
-
-      // Show immediately in UI without sending another API request
-      setMessages((prev) => [
-        ...prev,
-        { ...messageData, sender_id: currentUser.id },
-      ]);
-
-      // Clear the input field
-      setNewMessage("");
-    } catch (err) {
-      console.error("Error sending message:", err);
-    }
+    socket.emit("sendMessage", msgData);
+    setMessages((prev) => [...prev, { ...msgData, sender_id: currentUser.id }]);
+    setNewMessage("");
   };
 
-  return (
-    <div className="chat-container">
-      <div className="user-list">
-        <h3>Users</h3>
-        {users.map((user) => (
-          <div
-            key={user.id}
-            className={`user ${selectedUser?.id === user.id ? "active" : ""}`}
-            onClick={() => selectUser(user)}
-          >
-            {user.name}
-          </div>
-        ))}
-      </div>
 
-      <div className="chat-box">
-        {selectedUser ? (
-          <>
-            <div className="messages">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`message ${
-                    msg.sender_id === currentUser?.id ? "sent" : "received"
-                  }`}
-                >
-                  {msg.message}
+    return (
+      <>
+        <div className="chat-header">
+          <h2>Campus-Network</h2>
+        </div>
+    
+        <div className="chat-container">
+          <div className="user-list">
+            <h3>Users</h3>
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className={`user ${selectedUser?.id === user.id ? "active" : ""}`}
+                onClick={() => selectUser(user)}
+              >
+                <span>{user.name}</span>
+                {unreadCounts[user.id] > 0 && (
+                  <span className="unread-badge">{unreadCounts[user.id]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+    
+          <div className="chat-box">
+            {selectedUser ? (
+              <>
+                <div className="messages">
+                  {messages.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`message ${
+                        msg.sender_id === currentUser?.id ? "sent" : "received"
+                      }`}
+                    >
+                      {msg.message}
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="input-box">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-              />
-              <button onClick={sendMessage}>Send</button>
-            </div>
-          </>
-        ) : (
-          <h3>Select a user to chat</h3>
-        )}
-      </div>
-    </div>
-  );
+                <div className="input-box">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                  />
+                  <button onClick={sendMessage}>Send</button>
+                </div>
+              </>
+            ) : (
+              <h3>Select a user to chat</h3>
+            )}
+          </div>
+        </div>
+      </>
+    );
+    
 };
 
 export default MessagesPage;
