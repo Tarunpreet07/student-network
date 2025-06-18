@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import {useParams, useNavigate, Link } from "react-router-dom";
 import "./Search.css";
 
 const Search = () => {
@@ -18,6 +18,7 @@ const Search = () => {
     setQuery("");
     setError("");
   };
+  const { userId } = useParams();
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -53,10 +54,15 @@ const Search = () => {
 
   return (
     <div className="search-container">
+      <div className="chat-header">
+          <h2>Campus-Network</h2>
+        </div>
       <div style={{ marginBottom: "20px" }}>
-        <Link to="/home/1" className="back-to-home-link">
-          ← Back to Home
-        </Link>
+      <Link to={`/home/${userId}`} className="back-to-home-link">
+
+  ← Back to Home
+</Link>
+
       </div>
 
       <h1>Search</h1>

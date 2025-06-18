@@ -46,51 +46,60 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit} className="auth-form">
-        <input
-          type="text"
-          placeholder="Username"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-        />
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-
-      {message && <p className={success ? 'success' : 'error'}>{message}</p>}
-
-      {!showRegisterOption ? (
-        <p>
-          Don't have an account?{' '}
-          <button
-            onClick={() => setShowRegisterOption(true)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'blue',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              padding: 0,
-              fontSize: '1em'
-            }}
-          >
-            Register here
-          </button>
-        </p>
-      ) : null}
-    </div>
+    <>
+      <div className="chat-header">
+        <h2>Campus-Network</h2>
+      </div>
+  
+      <div className="auth-container">
+        <div className="auth-form">
+          <h2>Login</h2>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Username"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+            />
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+  
+          {message && <p className={success ? 'success' : 'error'}>{message}</p>}
+  
+          {!showRegisterOption && (
+            <p>
+              Don't have an account?{' '}
+              <button
+                onClick={() => setShowRegisterOption(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'blue',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '1em',
+                }}
+              >
+                Register here
+              </button>
+            </p>
+          )}
+        </div>
+      </div>
+    </>
   );
+  
 };
 
 export default Login;

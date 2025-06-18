@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate , Link} from 'react-router-dom';
 import axios from 'axios';
 import '../styles/profile.css';
 
@@ -143,26 +143,16 @@ const Profile = () => {
       <div className="chat-header">
         <h2>Campus-Network</h2>
       </div>
+      <div style={{ marginBottom: "20px" }}>
+      <Link to={`/home/${userId}`} className="back-to-home-link">
+
+  ← Back to Home
+</Link>
+
+      </div>
+
   
       <div className="profile-container">
-        {/* Back to Home Button */}
-        <div style={{ marginBottom: "20px" }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              fontSize: '16px',
-              background: 'none',
-              border: 'none',
-              color: '#007bff',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            ← Back to Home
-          </button>
-        </div>
-  
-        {error && <div className="error-message">{error}</div>}
   
         {/* Profile Header */}
         <div className="profile-header">

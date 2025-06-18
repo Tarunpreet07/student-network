@@ -26,7 +26,9 @@ function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile/:userId" element={<Profile />} />  {/* Dynamic route for profile */}
         <Route path="/resources" element={<Resources />} />
-        <Route path="/search" element={<Search />} />
+        <Route path="/search/:userId" element={<Search />} />  // ✅ CORRECT
+
+
       </Routes>
     </BrowserRouter>
   );

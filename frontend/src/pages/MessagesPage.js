@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams , Link} from "react-router-dom";
 import io from "socket.io-client";
 import axios from "axios";
 import "../styles/messages.css";
@@ -139,7 +139,13 @@ const MessagesPage = () => {
         <div className="chat-header">
           <h2>Campus-Network</h2>
         </div>
-    
+        <div style={{ marginBottom: "20px" }}>
+        <Link to={`/home/${user_id}`} className="back-to-home-link">
+  ← Back to Home
+</Link>
+
+      </div>
+
         <div className="chat-container">
           <div className="user-list">
             <h3>Users</h3>
