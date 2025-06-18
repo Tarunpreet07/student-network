@@ -15,6 +15,8 @@ const filter = new Filter();
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+
 
 dotenv.config();
 
@@ -32,6 +34,7 @@ app.use(express.json());
 app.use("/api", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ✅ Serve uploaded files (profile pics, etc.)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

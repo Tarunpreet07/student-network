@@ -1,0 +1,79 @@
+/* src/components/Notifications.css */
+
+.notif-wrapper {
+    background-color: #f1f2f6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .chat-header {
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .notif-card {
+    background: white;
+    margin-top: 40px;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+  }
+  
+  .notif-card h3 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .notif-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .notif-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+  }
+  
+  .notif-icon {
+    font-size: 26px;
+    margin-right: 15px;
+  }
+  
+  .notif-icon.message {
+    color: #333; /* dark message icon */
+  }
+  
+  .notif-icon.download {
+    color: #28a745;
+  }
+  
+  .notif-text p {
+    margin: 0;
+    font-weight: 500;
+    color: #444;
+  }
+  
+  .notif-text small {
+    display: block;
+    color: #888;
+    margin-top: 4px;
+  }
+  
