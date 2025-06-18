@@ -12,10 +12,22 @@ exports.register = async (req, res) => {
 
   try {
     // Check if email already exists
-    const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Email already registered' });
-    }
+    // Check if email or username already exists
+const [existingUsers] = await db.query(
+  'SELECT * FROM users WHERE email = ? OR name = ?',
+  [email, name]
+);
+
+if (existingUsers.length > 0) {
+  const existing = existingUsers[0];
+  if (existing.email === email) {
+    return res.status(400).json({ message: 'Email already registered' });
+  }
+  if (existing.name === name) {
+    return res.status(400).json({ message: 'Username already taken' });
+  }
+}
+
 
     const hash = bcrypt.hashSync(password, 10);
 

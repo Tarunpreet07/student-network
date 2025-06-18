@@ -121,18 +121,24 @@ const MessagesPage = () => {
   // Handle sending message
   const sendMessage = () => {
     if (!newMessage.trim() || !currentUser || !selectedUser) return;
-
+  
     const msgData = {
       senderId: currentUser.id,
       receiverId: selectedUser.id,
-      message: newMessage,
+      message: newMessage.trim(),
     };
-
-    socket.emit("sendMessage", msgData);
-    setMessages((prev) => [...prev, { ...msgData, sender_id: currentUser.id }]);
-    setNewMessage("");
+  
+    // Add callback to handle profanity response from backend
+    socket.emit("sendMessage", msgData, (response) => {
+      if (response?.error) {
+        alert(response.error); // or use toast for better UX
+      } else {
+        setMessages((prev) => [...prev, { ...msgData, sender_id: currentUser.id }]);
+        setNewMessage("");
+      }
+    });
   };
-
+  
 
     return (
       <>

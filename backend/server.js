@@ -9,6 +9,8 @@ const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const Filter = require('bad-words');
+const filter = new Filter();
 
 const routes = require("./routes/messageRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -58,16 +60,20 @@ db.connect((err) => {
 io.on("connection", (socket) => {
   console.log("🟢 A user connected");
 
-  socket.on("sendMessage", ({ senderId, receiverId, message }) => {
+  socket.on("sendMessage", ({ senderId, receiverId, message }, callback) => {
+    if (filter.isProfane(message)) {
+      return callback && callback({ error: "🚫 Inappropriate message detected." });
+    }
+  
     const created_at = new Date();
     const query = "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)";
-    
+  
     db.query(query, [senderId, receiverId, message, created_at], (err, result) => {
       if (err) {
         console.error("❌ Error saving message:", err);
-        return;
+        return callback && callback({ error: "❌ Could not save message." });
       }
-
+  
       const savedMessage = {
         id: result.insertId,
         sender_id: senderId,
@@ -75,11 +81,14 @@ io.on("connection", (socket) => {
         message,
         created_at
       };
-
+  
       io.emit(`receiveMessage:${receiverId}`, savedMessage);
       io.emit(`receiveMessage:${senderId}`, savedMessage);
+  
+      callback && callback({ success: true });
     });
   });
+  
 
   socket.on("disconnect", () => {
     console.log("🔴 A user disconnected");
