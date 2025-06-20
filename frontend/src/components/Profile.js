@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate , Link} from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+
 import axios from 'axios';
 import '../styles/profile.css';
 
 const Profile = () => {
   const { userId } = useParams();
+  
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const openedFromSearch = location.state?.fromSearch || false;
+  
   const [profile, setProfile] = useState(null);
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState('');
@@ -169,22 +173,24 @@ const Profile = () => {
             <p className="profile-email">{profile.email}</p>
             <p className="profile-bio">{profile.bio || 'No bio available'}</p>
   
-            <div className="profile-actions">
-              <div className="dropdown">
-                <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                  Actions ⌄
-                </button>
-                {dropdownOpen && (
-                  <div className="dropdown-menu">
-                    <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>Edit Profile Picture</button>
-                    <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>Edit Bio</button>
-                    <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>Add Post</button>
-                    <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>Upload Resource</button>
-                  </div>
-                )}
-              </div>
-            </div>
-  
+            {!openedFromSearch && (
+  <div className="profile-actions">
+    <div className="dropdown">
+      <button className="dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)}>
+        Actions ⌄
+      </button>
+      {dropdownOpen && (
+        <div className="dropdown-menu">
+          <button onClick={() => { setEditProfilePic(true); setDropdownOpen(false); }}>Edit Profile Picture</button>
+          <button onClick={() => { setEditBio(true); setDropdownOpen(false); }}>Edit Bio</button>
+          <button onClick={() => { setAddPost(true); setDropdownOpen(false); }}>Add Post</button>
+          <button onClick={() => { setAddResource(true); setDropdownOpen(false); }}>Upload Resource</button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
             {editProfilePic && (
               <form onSubmit={(e) => handleUpdateProfile(e, 'profile_pic')} className="edit-form">
                 <label>New Profile Picture:</label>

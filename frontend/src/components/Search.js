@@ -49,7 +49,8 @@ const Search = () => {
   };
 
   const handleUserClick = (userId) => {
-    navigate(`/profile/${userId}`);
+    navigate(`/profile/${userId}`, { state: { fromSearch: true } });
+
   };
 
   return (
