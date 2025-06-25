@@ -11,3 +11,5 @@ backend/node_modules/
 =======
 frontend/node_modules/
 >>>>>>> backup-working-state
+node_modules/
+.cache/

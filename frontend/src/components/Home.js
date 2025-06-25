@@ -47,7 +47,7 @@ const Homepage = () => {
             It empowers you to connect with peers, discover student communities, and stay updated with everything happening around you.
           </p>
           <p>
-            Whether you're looking to find group study partners, explore shared interests, receive announcements from clubs,
+            Whether you're looking to find group study partners, explore shared interests,
             or simply chat with friends, Campus-Network brings it all together in one place. Our smart search and messaging features
             make communication seamless and effective.
           </p>
@@ -61,11 +61,11 @@ const Homepage = () => {
         <div className="features-section">
           <div className="feature-card">
             <h3>💬 Messaging</h3>
-            <p>Instantly chat with classmates and group members for smooth collaboration and communication.</p>
+            <p>Instantly chat with classmates for smooth collaboration and communication.</p>
           </div>
           <div className="feature-card">
             <h3>🔍 Smart Search</h3>
-            <p>Easily find fellow students, posts, resources, and events using our intelligent search system.</p>
+            <p>Easily find fellow students, posts, and resources using our intelligent search system.</p>
           </div>
           <div className="feature-card">
             <h3>📝 Posting</h3>
