@@ -1,15 +1,8 @@
-
 # Ignore node_modules folders
 node_modules/
 frontend/node_modules/
 backend/node_modules/
 
-# Optional: Ignore cache or temp files
+# Ignore cache and temp files
+.cache/
 *.log
-.cache/
-
-=======
-frontend/node_modules/
->>>>>>> backup-working-state
-node_modules/
-.cache/
